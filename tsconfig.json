@@ -4,8 +4,10 @@
     "jsx": "react-jsx",
     "resolveJsonModule": true,
     "noEmit": true,
+    "skipLibCheck": true,
     "paths": {
-      "contrib/*": ["./contrib/*"]
+      "contrib/*": ["./contrib/*"],
+      "sdc-qrf": ["./vendor/sdc-qrf/"]
     }
   }
 }
