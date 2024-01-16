@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "jsx": "react-jsx",
+    "resolveJsonModule": true,
+    "noEmit": true,
+    "paths": {
+      "contrib/*": ["./contrib/*"]
+    }
+  }
+}
