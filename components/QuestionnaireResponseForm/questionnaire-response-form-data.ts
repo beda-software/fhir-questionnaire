@@ -5,6 +5,14 @@ import {
     Questionnaire as FHIRQuestionnaire,
 } from 'fhir/r4b';
 import moment from 'moment';
+
+import { formatFHIRDateTime, initServices, useService } from '@beda.software/fhir-react';
+import { RemoteDataResult, isFailure, isSuccess, mapSuccess, success } from '@beda.software/remote-data';
+
+import {
+    QuestionnaireResponse as FCEQuestionnaireResponse,
+    ParametersParameter as FCEParametersParameter,
+} from '../../contrib/aidbox';
 import {
     toFirstClassExtension,
     fromFirstClassExtension,
@@ -13,17 +21,8 @@ import {
     calcInitialContext,
     removeDisabledAnswers,
     QuestionnaireResponseFormData,
-} from 'sdc-qrf';
-
-import { formatFHIRDateTime, initServices, useService } from '@beda.software/fhir-react';
-import { RemoteDataResult, isFailure, isSuccess, mapSuccess, success } from '@beda.software/remote-data';
-
-import {
-    QuestionnaireResponse as FCEQuestionnaireResponse,
-    ParametersParameter as FCEParametersParameter,
-} from 'contrib/aidbox';
-
-export type { QuestionnaireResponseFormData } from 'sdc-qrf';
+} from '../../vendor/sdc-qrf';
+export type { QuestionnaireResponseFormData } from '../../vendor/sdc-qrf';
 
 export type QuestionnaireResponseFormSaveResponse = {
     questionnaireResponse: FHIRQuestionnaireResponse;
@@ -35,7 +34,7 @@ export interface QuestionnaireResponseFormProps {
     initialQuestionnaireResponse?: Partial<FHIRQuestionnaireResponse>;
     launchContextParameters?: ParametersParameter[];
     service: ReturnType<typeof initServices>['service'];
-    questionnaireResponseSaveService?: QuestionnaireResponseSaveService;
+    questionnaireResponseSaveService: QuestionnaireResponseSaveService;
 }
 
 interface QuestionnaireServiceLoader {

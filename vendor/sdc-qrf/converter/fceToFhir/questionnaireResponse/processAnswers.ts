@@ -4,7 +4,7 @@ import isEmpty from 'lodash/isEmpty';
 import {
     QuestionnaireResponseItem as FCEQuestionnaireResponseItem,
     QuestionnaireResponseItemAnswer as FCEQuestionnaireResponseItemAnswer,
-} from 'contrib/aidbox';
+} from '../../../../../contrib/aidbox';
 
 import { toFHIRReference } from '../../../converter';
 
@@ -19,9 +19,7 @@ export function processAnswers(items: FCEQuestionnaireResponseItem[]) {
     }
 }
 
-function processAnswer(
-    answerItem: FCEQuestionnaireResponseItemAnswer,
-): FHIRQuestionnaireResponseItemAnswer {
+function processAnswer(answerItem: FCEQuestionnaireResponseItemAnswer): FHIRQuestionnaireResponseItemAnswer {
     if (!answerItem.value) {
         return answerItem;
     }
@@ -39,8 +37,10 @@ function processAnswer(
     };
     for (const key in valueMappings) {
         if (key in value) {
+            // @ts-ignore
             const newKey = valueMappings[key];
             if (newKey) {
+                // @ts-ignore
                 fhirAnswerItem[newKey] = value[key];
             }
             break;

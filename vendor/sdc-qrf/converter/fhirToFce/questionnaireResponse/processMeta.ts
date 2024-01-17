@@ -1,6 +1,6 @@
 import { Meta as FHIRMeta } from 'fhir/r4b';
 
-import { Meta as FCEMeta } from 'contrib/aidbox';
+import { Meta as FCEMeta } from '../../../../../contrib/aidbox';
 
 import { extractExtension } from '../../../converter';
 

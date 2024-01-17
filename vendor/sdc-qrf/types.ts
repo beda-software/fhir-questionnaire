@@ -8,7 +8,7 @@ import {
     QuestionnaireResponse,
     QuestionnaireResponseItem,
     QuestionnaireResponseItemAnswer,
-} from 'contrib/aidbox';
+} from '../../contrib/aidbox';
 
 export type GroupItemComponent = ComponentType<GroupItemProps>;
 export type QuestionItemComponent = ComponentType<QuestionItemProps>;
@@ -72,8 +72,7 @@ export interface GroupItemProps {
     parentPath: string[];
 }
 
-export type AnswerValue = Required<QuestionnaireResponseItemAnswer>['value'] &
-    Required<Observation>['value'];
+export type AnswerValue = Required<QuestionnaireResponseItemAnswer>['value'] & Required<Observation>['value'];
 
 export interface RepeatableFormGroupItems {
     question?: string;

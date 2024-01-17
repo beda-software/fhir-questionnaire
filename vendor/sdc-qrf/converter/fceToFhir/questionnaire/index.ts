@@ -1,7 +1,7 @@
 import { Questionnaire as FHIRQuestionnaire } from 'fhir/r4b';
 import cloneDeep from 'lodash/cloneDeep';
 
-import { Questionnaire as FCEQuestionnaire } from 'contrib/aidbox';
+import { Questionnaire as FCEQuestionnaire } from '../../../../../contrib/aidbox';
 
 import { processExtensions } from './processExtensions';
 import { processItems } from './processItems';

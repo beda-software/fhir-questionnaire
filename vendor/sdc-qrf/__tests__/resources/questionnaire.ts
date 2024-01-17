@@ -1,4 +1,4 @@
-import { Questionnaire } from 'contrib/aidbox';
+import { Questionnaire } from '../../../../contrib/aidbox';
 
 export const allergiesQuestionnaire: Questionnaire = {
     id: 'allergies',

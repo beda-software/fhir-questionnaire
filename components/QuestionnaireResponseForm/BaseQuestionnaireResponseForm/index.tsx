@@ -15,7 +15,7 @@ import {
     QuestionItems,
     QuestionnaireResponseFormData,
     QuestionnaireResponseFormProvider,
-} from 'sdc-qrf';
+} from '../../../vendor/sdc-qrf';
 
 export interface BaseQuestionnaireResponseFormProps {
     formData: QuestionnaireResponseFormData;
@@ -63,7 +63,7 @@ export function BaseQuestionnaireResponseForm(props: BaseQuestionnaireResponseFo
     const formValues = form.watch();
 
     const wrapControls = useCallback(
-        (mapping: { [x: string]: QuestionItemComponent }): { [x: string]: QuestionItemComponent } => {
+        (mapping?: { [x: string]: QuestionItemComponent }): { [x: string]: QuestionItemComponent } => {
             return _.chain(mapping)
                 .toPairs()
                 .map(([key, Control]) => [
@@ -87,7 +87,7 @@ export function BaseQuestionnaireResponseForm(props: BaseQuestionnaireResponseFo
     );
 
     const wrapGroups = useCallback(
-        (mapping: { [x: string]: GroupItemComponent }): { [x: string]: GroupItemComponent } => {
+        (mapping?: { [x: string]: GroupItemComponent }): { [x: string]: GroupItemComponent } => {
             return _.chain(mapping)
                 .toPairs()
                 .map(([key, Control]) => [
@@ -128,6 +128,10 @@ export function BaseQuestionnaireResponseForm(props: BaseQuestionnaireResponseFo
             function GroupItemComponent(itemProps: GroupItemProps) {
                 const Control = props.groupItemComponent;
 
+                if (!Control) {
+                    return null;
+                }
+
                 if (GroupWrapper) {
                     return (
                         <GroupWrapper item={itemProps} control={Control}>
@@ -138,7 +142,7 @@ export function BaseQuestionnaireResponseForm(props: BaseQuestionnaireResponseFo
 
                 return <Control {...itemProps} />;
             },
-        [GroupWrapper],
+        [GroupWrapper, props.groupItemComponent],
     );
 
     return (

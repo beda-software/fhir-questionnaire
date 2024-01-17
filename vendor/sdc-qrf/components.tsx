@@ -3,7 +3,7 @@ import _ from 'lodash';
 import isEqual from 'lodash/isEqual';
 import React, { ReactChild, useEffect, useContext, useMemo, useRef } from 'react';
 
-import { QuestionnaireItem } from 'contrib/aidbox';
+import { QuestionnaireItem } from '../../contrib/aidbox';
 
 import { useQuestionnaireResponseFormContext } from './hooks';
 import { QRFContext } from './context';
@@ -30,18 +30,9 @@ export function QuestionItems(props: QuestionItemsProps) {
 
     return (
         <React.Fragment>
-            {getEnabledQuestions(questionItems, parentPath, formValues, context).map(
-                (item, index) => {
-                    return (
-                        <QuestionItem
-                            key={index}
-                            questionItem={item}
-                            context={context}
-                            parentPath={parentPath}
-                        />
-                    );
-                },
-            )}
+            {getEnabledQuestions(questionItems, parentPath, formValues, context).map((item, index) => {
+                return <QuestionItem key={index} questionItem={item} context={context} parentPath={parentPath} />;
+            })}
         </React.Fragment>
     );
 }
@@ -61,11 +52,7 @@ export function QuestionItem(props: QuestionItemProps) {
     const fieldPath = useMemo(() => [...parentPath, linkId!], [parentPath, linkId]);
 
     // TODO: how to do when item is not in QR (e.g. default element of repeatable group)
-    const branchItems = getBranchItems(
-        fieldPath,
-        initialContext.questionnaire,
-        initialContext.resource,
-    );
+    const branchItems = getBranchItems(fieldPath, initialContext.questionnaire, initialContext.resource);
     const context =
         type === 'group'
             ? branchItems.qrItems.map((curQRItem) =>
@@ -110,28 +97,18 @@ export function QuestionItem(props: QuestionItemProps) {
 
     if (isGroupItem(questionItem, context)) {
         if (itemControl) {
-            if (
-                !itemControlGroupItemComponents ||
-                !itemControlGroupItemComponents[itemControl.coding![0]!.code!]
-            ) {
-                console.warn(`QRF: Unsupported group itemControl '${itemControl.coding![0]!
-                    .code!}'.
+            if (!itemControlGroupItemComponents || !itemControlGroupItemComponents[itemControl.coding![0]!.code!]) {
+                console.warn(`QRF: Unsupported group itemControl '${itemControl.coding![0]!.code!}'.
                 Please define 'itemControlGroupWidgets' for '${itemControl.coding![0]!.code!}'`);
                 const DefaultComponent = groupItemComponent;
                 return DefaultComponent ? (
-                    <DefaultComponent
-                        context={context}
-                        parentPath={parentPath}
-                        questionItem={questionItem}
-                    />
+                    <DefaultComponent context={context} parentPath={parentPath} questionItem={questionItem} />
                 ) : null;
             }
 
             const Component = itemControlGroupItemComponents[itemControl.coding![0]!.code!]!;
 
-            return (
-                <Component context={context} parentPath={parentPath} questionItem={questionItem} />
-            );
+            return <Component context={context} parentPath={parentPath} questionItem={questionItem} />;
         }
         if (!groupItemComponent) {
             console.warn(`QRF: groupWidget is not specified but used in questionnaire.`);
@@ -141,20 +118,11 @@ export function QuestionItem(props: QuestionItemProps) {
 
         const GroupWidgetComponent = groupItemComponent;
 
-        return (
-            <GroupWidgetComponent
-                context={context}
-                parentPath={parentPath}
-                questionItem={questionItem}
-            />
-        );
+        return <GroupWidgetComponent context={context} parentPath={parentPath} questionItem={questionItem} />;
     }
 
     if (itemControl) {
-        if (
-            !itemControlQuestionItemComponents ||
-            !itemControlQuestionItemComponents[itemControl.coding![0]!.code!]
-        ) {
+        if (!itemControlQuestionItemComponents || !itemControlQuestionItemComponents[itemControl.coding![0]!.code!]) {
             console.warn(
                 `QRF: Unsupported itemControl '${itemControl.coding![0]!.code!}'.
 Please define 'itemControlWidgets' for '${itemControl.coding![0]!.code!}'`,
@@ -162,11 +130,7 @@ Please define 'itemControlWidgets' for '${itemControl.coding![0]!.code!}'`,
 
             const DefaultComponent = questionItemComponents[questionItem.type];
             return DefaultComponent ? (
-                <DefaultComponent
-                    context={context}
-                    parentPath={parentPath}
-                    questionItem={questionItem}
-                />
+                <DefaultComponent context={context} parentPath={parentPath} questionItem={questionItem} />
             ) : null;
         }
 
@@ -177,9 +141,7 @@ Please define 'itemControlWidgets' for '${itemControl.coding![0]!.code!}'`,
 
     // TODO: deprecate!
     if (customWidgets && linkId && linkId in customWidgets) {
-        console.warn(
-            `QRF: 'customWidgets' are deprecated, use 'Questionnaire.item.itemControl' instead`,
-        );
+        console.warn(`QRF: 'customWidgets' are deprecated, use 'Questionnaire.item.itemControl' instead`);
 
         if (type === 'group') {
             console.error(`QRF: Use 'itemControl' for group custom widgets`);
@@ -202,17 +164,11 @@ Please define 'itemControlWidgets' for '${itemControl.coding![0]!.code!}'`,
     return null;
 }
 
-export function QuestionnaireResponseFormProvider({
-    children,
-    ...props
-}: QRFContextData & { children: ReactChild }) {
+export function QuestionnaireResponseFormProvider({ children, ...props }: QRFContextData & { children: ReactChild }) {
     return <QRFContext.Provider value={props}>{children}</QRFContext.Provider>;
 }
 
 /* Helper that resolves right context type */
-function isGroupItem(
-    questionItem: QuestionnaireItem,
-    context: ItemContext | ItemContext[],
-): context is ItemContext[] {
+function isGroupItem(questionItem: QuestionnaireItem, context: ItemContext | ItemContext[]): context is ItemContext[] {
     return questionItem.type === 'group';
 }

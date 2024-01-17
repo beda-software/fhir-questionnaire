@@ -1,1 +1,1 @@
-export { QuestionnaireResponseForm } from './components/QuestionnaireResponseForm';
+export * from './components/QuestionnaireResponseForm';

@@ -1,6 +1,6 @@
 import { Extension as FHIRExtension } from 'fhir/r4b';
 
-import { QuestionnaireItem as FCEQuestionnaireItem } from 'contrib/aidbox';
+import { QuestionnaireItem as FCEQuestionnaireItem } from '../../../contrib/aidbox';
 
 export enum ExtensionIdentifier {
     Hidden = 'http://hl7.org/fhir/StructureDefinition/questionnaire-hidden',
@@ -28,9 +28,7 @@ export type ExtensionTransformer = {
     [key in ExtensionIdentifier]:
         | {
               transform: {
-                  fromExtension: (
-                      extension: FHIRExtension,
-                  ) => Partial<FCEQuestionnaireItem> | undefined;
+                  fromExtension: (extension: FHIRExtension) => Partial<FCEQuestionnaireItem> | undefined;
                   toExtension: (item: FCEQuestionnaireItem) => FHIRExtension | undefined;
               };
           }
@@ -99,10 +97,9 @@ export const extensionTransformers: ExtensionTransformer = {
                         choiceColumn: [
                             {
                                 forDisplay:
-                                    choiceColumnExtension.find((obj) => obj.url === 'forDisplay')
-                                        ?.valueBoolean ?? false,
-                                path: choiceColumnExtension.find((obj) => obj.url === 'path')
-                                    ?.valueString,
+                                    choiceColumnExtension.find((obj) => obj.url === 'forDisplay')?.valueBoolean ??
+                                    false,
+                                path: choiceColumnExtension.find((obj) => obj.url === 'path')?.valueString,
                             },
                         ],
                     };

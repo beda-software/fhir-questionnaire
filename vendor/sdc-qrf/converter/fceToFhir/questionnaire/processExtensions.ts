@@ -1,10 +1,9 @@
 import { Extension as FHIRExtension, Questionnaire as FHIRQuestionnaire } from 'fhir/r4b';
 
-import { Questionnaire as FCEQuestionnaire } from 'contrib/aidbox';
+import { Questionnaire as FCEQuestionnaire } from '../../../../../contrib/aidbox';
 
 export function processExtensions(questionnaire: FCEQuestionnaire): FHIRQuestionnaire {
-    const { launchContext, mapping, sourceQueries, targetStructureMap, ...fhirQuestionnaire } =
-        questionnaire;
+    const { launchContext, mapping, sourceQueries, targetStructureMap, ...fhirQuestionnaire } = questionnaire;
 
     let extensions: FHIRExtension[] = [];
 

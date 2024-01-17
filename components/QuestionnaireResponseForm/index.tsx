@@ -1,6 +1,10 @@
 import _ from 'lodash';
-import { useMemo } from 'react';
-import { FormItems, ItemControlGroupItemComponentMapping, ItemControlQuestionItemComponentMapping } from 'sdc-qrf';
+import React, { useMemo } from 'react';
+import {
+    FormItems,
+    ItemControlGroupItemComponentMapping,
+    ItemControlQuestionItemComponentMapping,
+} from '../../vendor/sdc-qrf';
 
 import { RenderRemoteData } from '@beda.software/fhir-react';
 import { RemoteDataResult, isSuccess } from '@beda.software/remote-data';
@@ -12,6 +16,8 @@ import {
     useQuestionnaireResponseFormData,
 } from './questionnaire-response-form-data';
 import { BaseQuestionnaireResponseForm } from './BaseQuestionnaireResponseForm';
+
+export { questionnaireIdLoader } from './questionnaire-response-form-data';
 
 interface Props extends QuestionnaireResponseFormProps {
     onSuccess?: (resource: QuestionnaireResponseFormSaveResponse) => void;
@@ -43,6 +49,7 @@ export function onFormResponse(props: {
 export function useQuestionnaireResponseForm(props: Props) {
     // TODO find what cause rerender and fix it
     // remove this temporary hack
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const memoizedProps = useMemo(() => props, [JSON.stringify(props)]);
 
     const { response, handleSave } = useQuestionnaireResponseFormData(memoizedProps);

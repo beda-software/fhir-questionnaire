@@ -12,13 +12,9 @@ import {
     QuestionnaireItemEnableWhenAnswer as FCEQuestionnaireItemEnableWhenAnswer,
     QuestionnaireItemAnswerOption as FCEQuestionnaireItemAnswerOption,
     QuestionnaireItemInitial as FCEQuestionnaireItemInitial,
-} from 'contrib/aidbox';
+} from '../../../../../contrib/aidbox';
 
-import {
-    convertFromFHIRExtension,
-    convertToFHIRExtension,
-    toFHIRReference,
-} from '../../../converter';
+import { convertFromFHIRExtension, convertToFHIRExtension, toFHIRReference } from '../../../converter';
 
 export function processItems(items: FCEQuestionnaireItem[]): FHIRQuestionnaireItem[] {
     return items.map((item) => {
@@ -29,20 +25,13 @@ export function processItems(items: FCEQuestionnaireItem[]): FHIRQuestionnaireIt
                 .filter((ext): ext is Partial<FCEQuestionnaireItem> => ext !== undefined)
                 .flatMap(Object.keys);
             for (const field of fieldsToOmit) {
+                // @ts-ignore
                 delete item[field];
             }
             item.extension = extensions.sort();
         }
 
-        const {
-            enableBehavior,
-            enableWhen,
-            answerOption,
-            initial,
-            item: nestedItems,
-            type,
-            ...commonOptions
-        } = item;
+        const { enableBehavior, enableWhen, answerOption, initial, item: nestedItems, type, ...commonOptions } = item;
 
         const fhirItem: FHIRQuestionnaireItem = {
             ...commonOptions,
@@ -78,7 +67,7 @@ const convertEnableWhen = (
     answerType: string,
     result: FHIRQuestionnaireItemEnableWhen,
 ) => {
-    if (answer[answerType] !== undefined) {
+    if (answerType in answer) {
         switch (answerType) {
             case 'boolean':
                 result.answerBoolean = answer[answerType];
@@ -116,9 +105,7 @@ const convertEnableWhen = (
     }
 };
 
-function processAnswerOption(
-    options: FCEQuestionnaireItemAnswerOption[],
-): FHIRQuestionnaireItemAnswerOption[] {
+function processAnswerOption(options: FCEQuestionnaireItemAnswerOption[]): FHIRQuestionnaireItemAnswerOption[] {
     return options.map((option) => {
         const { value, ...commonOptions } = option;
 

@@ -11,7 +11,7 @@ import {
     QuestionnaireResponse,
     QuestionnaireResponseItem,
     QuestionnaireResponseItemAnswer,
-} from 'contrib/aidbox';
+} from '../../contrib/aidbox';
 
 import {
     AnswerValue,
@@ -64,8 +64,7 @@ export function getBranchItems(
     questionnaire: Questionnaire,
     questionnaireResponse: QuestionnaireResponse,
 ): { qItem: QuestionnaireItem; qrItems: QuestionnaireResponseItem[] } {
-    let qrItem: QuestionnaireResponseItem | QuestionnaireResponse | undefined =
-        questionnaireResponse;
+    let qrItem: QuestionnaireResponseItem | QuestionnaireResponse | undefined = questionnaireResponse;
     let qItem: QuestionnaireItem | Questionnaire = questionnaire;
 
     // TODO: check for question with sub items
@@ -127,12 +126,7 @@ export function compareValue(firstAnswerValue: AnswerValue, secondAnswerValue: A
     if (firstValueType !== secondValueType) {
         throw new Error('Enable when must be used for the same type');
     }
-    if (
-        !_.includes(
-            ['string', 'date', 'dateTime', 'time', 'uri', 'boolean', 'integer', 'decimal'],
-            firstValueType,
-        )
-    ) {
+    if (!_.includes(['string', 'date', 'dateTime', 'time', 'uri', 'boolean', 'integer', 'decimal'], firstValueType)) {
         throw new Error('Impossible to compare non-primitive type');
     }
 
@@ -264,8 +258,7 @@ function mapResponseToFormRecursive(
             return acc;
         }
 
-        const qrItems =
-            questionnaireResponseItems.filter((qrItem) => qrItem.linkId === linkId) ?? [];
+        const qrItems = questionnaireResponseItems.filter((qrItem) => qrItem.linkId === linkId) ?? [];
 
         if (qrItems.length && isGroup(question)) {
             if (repeats) {
@@ -274,10 +267,7 @@ function mapResponseToFormRecursive(
                     [linkId]: {
                         question: text,
                         items: qrItems.map((qrItem) => {
-                            return mapResponseToFormRecursive(
-                                qrItem.item ?? [],
-                                question.item ?? [],
-                            );
+                            return mapResponseToFormRecursive(qrItem.item ?? [], question.item ?? []);
                         }),
                     },
                 };
@@ -286,10 +276,7 @@ function mapResponseToFormRecursive(
                     ...acc,
                     [linkId]: {
                         question: text,
-                        items: mapResponseToFormRecursive(
-                            qrItems[0]?.item ?? [],
-                            question.item ?? [],
-                        ),
+                        items: mapResponseToFormRecursive(qrItems[0]?.item ?? [], question.item ?? []),
                     },
                 };
             }
@@ -319,7 +306,7 @@ export function mapResponseToForm(resource: QuestionnaireResponse, questionnaire
 }
 
 function initialToQuestionnaireResponseItemAnswer(initial: QuestionnaireItemInitial[] | undefined) {
-    return (initial ?? []).map(({ value }) => ({ value }) as QuestionnaireResponseItemAnswer);
+    return (initial ?? []).map(({ value }) => ({ value } as QuestionnaireResponseItemAnswer));
 }
 
 export function findAnswersForQuestionsRecursive(linkId: string, values?: FormItems): any | null {
@@ -416,25 +403,20 @@ export function isValueEqual(firstValue: AnswerValue, secondValue: AnswerValue) 
     return _.isEqual(firstValue, secondValue);
 }
 
-export function getChecker(
-    operator: string,
-): (values: Array<{ value: any }>, answerValue: any) => boolean {
+export function getChecker(operator: string): (values: Array<{ value: any }>, answerValue: any) => boolean {
     if (operator === '=') {
-        return (values, answerValue) =>
-            _.findIndex(values, ({ value }) => isValueEqual(value, answerValue)) !== -1;
+        return (values, answerValue) => _.findIndex(values, ({ value }) => isValueEqual(value, answerValue)) !== -1;
     }
 
     if (operator === '!=') {
-        return (values, answerValue) =>
-            _.findIndex(values, ({ value }) => isValueEqual(value, answerValue)) === -1;
+        return (values, answerValue) => _.findIndex(values, ({ value }) => isValueEqual(value, answerValue)) === -1;
     }
 
     if (operator === 'exists') {
         return (values, answerValue) => {
             const answersLength = _.reject(
                 values,
-                (value) =>
-                    isValueEmpty(value.value) || _.every(_.mapValues(value.value, isValueEmpty)),
+                (value) => isValueEmpty(value.value) || _.every(_.mapValues(value.value, isValueEmpty)),
             ).length;
             const answer = answerValue?.boolean ?? true;
             return answersLength > 0 === answer;
@@ -559,9 +541,7 @@ interface RemoveDisabledAnswersRecursiveArgs {
 }
 function removeDisabledAnswersRecursive(args: RemoveDisabledAnswersRecursiveArgs): FormItems {
     return args.questionnaireItems.reduce((acc, questionnaireItem) => {
-        const values = args.parentPath.length
-            ? _.set(_.cloneDeep(args.initialValues), args.parentPath, acc)
-            : acc;
+        const values = args.parentPath.length ? _.set(_.cloneDeep(args.initialValues), args.parentPath, acc) : acc;
 
         const { linkId } = questionnaireItem;
         const answers = args.answersItems[linkId!];
@@ -594,12 +574,7 @@ function removeDisabledAnswersRecursive(args: RemoveDisabledAnswersRecursiveArgs
                         items: answers.items.map((group, index) =>
                             removeDisabledAnswersRecursive({
                                 questionnaireItems: questionnaireItem.item ?? [],
-                                parentPath: [
-                                    ...args.parentPath,
-                                    linkId!,
-                                    'items',
-                                    index.toString(),
-                                ],
+                                parentPath: [...args.parentPath, linkId!, 'items', index.toString()],
                                 answersItems: group,
                                 initialValues: values,
                                 context: args.context,
@@ -681,10 +656,7 @@ export function calcInitialContext(
         ...qrfDataContext.launchContextParameters.reduce(
             (acc, { name, value, resource }) => ({
                 ...acc,
-                [name]:
-                    value && isPlainObject(value)
-                        ? value[Object.keys(value)[0] as keyof AnswerValue]
-                        : resource,
+                [name]: value && isPlainObject(value) ? value[Object.keys(value)[0] as keyof AnswerValue] : resource,
             }),
             {},
         ),

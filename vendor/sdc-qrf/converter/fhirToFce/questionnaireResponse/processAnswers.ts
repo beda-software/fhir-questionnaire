@@ -6,7 +6,7 @@ import {
 } from 'fhir/r4b';
 import isEmpty from 'lodash/isEmpty';
 
-import { QuestionnaireResponseItemAnswer as FCEQuestionnaireResponseItemAnswer } from 'contrib/aidbox';
+import { QuestionnaireResponseItemAnswer as FCEQuestionnaireResponseItemAnswer } from '../../../../../contrib/aidbox';
 
 import { fromFHIRReference } from '../../../converter';
 
@@ -24,9 +24,7 @@ export function processAnswers(items: FHIRQuestionnaireResponseItem[]) {
     }
 }
 
-function processAnswer(
-    answer: FHIRQuestionnaireResponseItemAnswer,
-): FCEQuestionnaireResponseItemAnswer {
+function processAnswer(answer: FHIRQuestionnaireResponseItemAnswer): FCEQuestionnaireResponseItemAnswer {
     const fceAnswer: FCEQuestionnaireResponseItemAnswer = { ...answer };
     const valueHandlers = {
         valueString: (value: string) => ({ string: value }),
@@ -44,8 +42,11 @@ function processAnswer(
 
     for (const key in valueHandlers) {
         if (key in fceAnswer) {
+            // @ts-ignore
             const value = fceAnswer[key];
+            // @ts-ignore
             delete fceAnswer[key];
+            // @ts-ignore
             fceAnswer.value = valueHandlers[key]?.(value);
         }
     }

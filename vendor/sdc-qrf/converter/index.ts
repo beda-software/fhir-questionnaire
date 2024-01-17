@@ -8,16 +8,14 @@ import {
     Extension as FCEExtension,
     QuestionnaireItem as FCEQuestionnaireItem,
     InternalReference,
-} from 'contrib/aidbox';
+} from '../../../contrib/aidbox';
 
 import { ExtensionIdentifier, extensionTransformers } from './extensions';
 import { fromFirstClassExtension } from './fceToFhir';
 import { toFirstClassExtension } from './fhirToFce';
 import { processLaunchContext as processLaunchContextToFce } from './fhirToFce/questionnaire/processExtensions';
 
-export function convertFromFHIRExtension(
-    extension: FHIRExtension,
-): Partial<FCEQuestionnaireItem> | undefined {
+export function convertFromFHIRExtension(extension: FHIRExtension): Partial<FCEQuestionnaireItem> | undefined {
     const identifier = extension.url;
     const transformer = extensionTransformers[identifier as ExtensionIdentifier];
     if (transformer !== undefined) {
@@ -31,9 +29,8 @@ export function convertFromFHIRExtension(
 
 export function convertToFHIRExtension(item: FCEQuestionnaireItem): FHIRExtension[] {
     const extensions: FHIRExtension[] = [];
-    for (const identifer in ExtensionIdentifier) {
-        const transformer =
-            extensionTransformers[ExtensionIdentifier[identifer] as ExtensionIdentifier];
+    for (const identifer of Object.values(ExtensionIdentifier)) {
+        const transformer = extensionTransformers[identifer];
         if ('transform' in transformer) {
             const extension = transformer.transform.toExtension(item);
             if (extension !== undefined) {
@@ -44,7 +41,7 @@ export function convertToFHIRExtension(item: FCEQuestionnaireItem): FHIRExtensio
             if (extensionValue !== undefined) {
                 const extension: FHIRExtension = {
                     [transformer.path.extension]: extensionValue,
-                    url: ExtensionIdentifier[identifer],
+                    url: identifer,
                 };
                 extensions.push(extension);
             }
@@ -66,6 +63,7 @@ export function fromFHIRReference(r?: FHIRReference): InternalReference | undefi
         return undefined;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { reference: literalReference, ...commonReferenceProperties } = r;
     const isHistoryVersionLink = r.reference.split('/').slice(-2, -1)[0] === '_history';
 

@@ -1,4 +1,4 @@
-import { Questionnaire, QuestionnaireResponse } from 'contrib/aidbox';
+import { Questionnaire, QuestionnaireResponse } from '../../../contrib/aidbox';
 
 import { allergiesQuestionnaire } from './resources/questionnaire';
 import {
@@ -169,9 +169,7 @@ test('Transform with initial values', () => {
         item: [
             {
                 linkId: 'root-group',
-                item: [
-                    { linkId: 'answer-with-initial', answer: [{ value: { string: 'initial' } }] },
-                ],
+                item: [{ linkId: 'answer-with-initial', answer: [{ value: { string: 'initial' } }] }],
             },
         ],
     };

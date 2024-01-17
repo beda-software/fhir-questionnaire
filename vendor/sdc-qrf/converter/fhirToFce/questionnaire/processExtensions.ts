@@ -23,9 +23,7 @@ export function processLaunchContext(fhirQuestionnaire: FHIRQuestionnaire): any[
     let launchContextExtensions = fhirQuestionnaire.extension ?? [];
 
     launchContextExtensions = launchContextExtensions.filter(
-        (ext) =>
-            ext.url ===
-            'http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-launchContext',
+        (ext) => ext.url === 'http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-launchContext',
     );
 
     if (launchContextExtensions.length === 0) {
@@ -35,12 +33,8 @@ export function processLaunchContext(fhirQuestionnaire: FHIRQuestionnaire): any[
     const launchContextArray = [];
     for (const launchContextExtension of launchContextExtensions) {
         const nameExtension = launchContextExtension.extension?.find((ext) => ext.url === 'name');
-        const typeExtensions = launchContextExtension.extension?.filter(
-            (ext) => ext.url === 'type',
-        );
-        const descriptionExtension = launchContextExtension.extension?.find(
-            (ext) => ext.url === 'description',
-        );
+        const typeExtensions = launchContextExtension.extension?.filter((ext) => ext.url === 'type');
+        const descriptionExtension = launchContextExtension.extension?.find((ext) => ext.url === 'description');
 
         const nameCode = nameExtension?.valueCoding?.code;
         const typeCodes = typeExtensions?.map((typeExtension) => typeExtension.valueCode!);
@@ -88,9 +82,7 @@ function processMapping(fhirQuestionnaire: FHIRQuestionnaire): any[] | undefined
 function processSourceQueries(fhirQuestionnaire: FHIRQuestionnaire): any[] {
     const extensions =
         fhirQuestionnaire.extension?.filter(
-            (ext) =>
-                ext.url ===
-                'http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-sourceQueries',
+            (ext) => ext.url === 'http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-sourceQueries',
         ) ?? [];
 
     return extensions.map((ext) => ({
@@ -100,9 +92,7 @@ function processSourceQueries(fhirQuestionnaire: FHIRQuestionnaire): any[] {
 
 function processTargetStructureMap(fhirQuestionnaire: FHIRQuestionnaire): string[] | undefined {
     const extensions = fhirQuestionnaire.extension?.filter(
-        (ext) =>
-            ext.url ===
-            'http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-targetStructureMap',
+        (ext) => ext.url === 'http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-targetStructureMap',
     );
 
     if (!extensions) {

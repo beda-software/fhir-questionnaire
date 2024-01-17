@@ -10,8 +10,6 @@ export function processMeta(fhirQuestionnaire: FHIRQuestionnaire) {
 }
 
 function getCreatedAt(fhirQuestionnaire: FHIRQuestionnaire) {
-    const metaExtension = fhirQuestionnaire.meta?.extension?.find(
-        (ext) => ext.url === 'ex:createdAt',
-    );
+    const metaExtension = fhirQuestionnaire.meta?.extension?.find((ext) => ext.url === 'ex:createdAt');
     return metaExtension ? { createdAt: metaExtension.valueInstant } : {};
 }

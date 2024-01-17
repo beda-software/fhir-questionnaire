@@ -12,7 +12,7 @@ import {
     QuestionnaireItemEnableWhenAnswer as FCEQuestionnaireItemEnableWhenAnswer,
     QuestionnaireItemAnswerOption as FCEQuestionnaireItemAnswerOption,
     QuestionnaireItemInitial as FCEQuestionnaireItemInitial,
-} from 'contrib/aidbox';
+} from '../../../../../contrib/aidbox';
 
 import { convertFromFHIRExtension, findExtension, fromFHIRReference } from '../../../converter';
 import { ExtensionIdentifier } from '../../../converter/extensions';
@@ -37,8 +37,7 @@ function convertItemProperties(item: FHIRQuestionnaireItem): FCEQuestionnaireIte
 function getUpdatedPropertiesFromItem(item: FHIRQuestionnaireItem) {
     let updatedProperties: FCEQuestionnaireItem = { linkId: item.linkId, type: item.type };
 
-    for (const identifer in ExtensionIdentifier) {
-        const identifierURI = ExtensionIdentifier[identifer];
+    for (const identifierURI of Object.values(ExtensionIdentifier)) {
         const extension = findExtension(item, identifierURI);
         if (extension !== undefined) {
             updatedProperties = {
@@ -55,9 +54,7 @@ function getUpdatedPropertiesFromItem(item: FHIRQuestionnaireItem) {
     return updatedProperties;
 }
 
-function processEnableWhenItem(
-    item: FHIRQuestionnaireItemEnableWhen,
-): FCEQuestionnaireItemEnableWhen {
+function processEnableWhenItem(item: FHIRQuestionnaireItemEnableWhen): FCEQuestionnaireItemEnableWhen {
     return {
         question: item.question,
         operator: item.operator,
