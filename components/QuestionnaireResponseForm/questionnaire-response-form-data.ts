@@ -33,8 +33,7 @@ export interface QuestionnaireResponseFormProps {
     questionnaireLoader: QuestionnaireLoader;
     initialQuestionnaireResponse?: Partial<FHIRQuestionnaireResponse>;
     launchContextParameters?: ParametersParameter[];
-    service: ReturnType<typeof initServices>['service'];
-    questionnaireResponseSaveService: QuestionnaireResponseSaveService;
+    serviceProvider: ReturnType<typeof initServices>;
 }
 
 interface QuestionnaireServiceLoader {
@@ -53,13 +52,6 @@ interface QuestionnaireIdWOAssembleLoader {
 }
 
 type QuestionnaireLoader = QuestionnaireServiceLoader | QuestionnaireIdLoader | QuestionnaireIdWOAssembleLoader;
-
-type QuestionnaireResponseSaveService = (
-    qr: FHIRQuestionnaireResponse,
-) => Promise<RemoteDataResult<FHIRQuestionnaireResponse>>;
-
-export const inMemorySaveService: QuestionnaireResponseSaveService = (qr: FHIRQuestionnaireResponse) =>
-    Promise.resolve(success(qr));
 
 export function questionnaireServiceLoader(
     questionnaireService: QuestionnaireServiceLoader['questionnaireService'],
@@ -121,17 +113,17 @@ export function toQuestionnaireResponseFormData(
     8. Returns updated QuestionnaireResponse resource and extract result
 **/
 export async function loadQuestionnaireResponseFormData(props: QuestionnaireResponseFormProps) {
-    const { launchContextParameters, questionnaireLoader, initialQuestionnaireResponse, service } = props;
+    const { launchContextParameters, questionnaireLoader, initialQuestionnaireResponse, serviceProvider } = props;
 
     const fetchQuestionnaire = () => {
         if (questionnaireLoader.type === 'raw-id') {
-            return service<FHIRQuestionnaire>({
+            return serviceProvider.service<FHIRQuestionnaire>({
                 method: 'GET',
                 url: `/Questionnaire/${questionnaireLoader.questionnaireId}`,
             });
         }
         if (questionnaireLoader.type === 'id') {
-            return service<FHIRQuestionnaire>({
+            return serviceProvider.service<FHIRQuestionnaire>({
                 method: 'GET',
                 url: `/Questionnaire/${questionnaireLoader.questionnaireId}/$assemble`,
             });
@@ -158,7 +150,7 @@ export async function loadQuestionnaireResponseFormData(props: QuestionnaireResp
     if (initialQuestionnaireResponse?.id) {
         populateRemoteData = success(initialQuestionnaireResponse as FHIRQuestionnaireResponse);
     } else {
-        populateRemoteData = await service<FHIRQuestionnaireResponse>({
+        populateRemoteData = await serviceProvider.service<FHIRQuestionnaireResponse>({
             method: 'POST',
             url: '/Questionnaire/$populate',
             data: params,
@@ -181,7 +173,7 @@ export async function handleFormDataSave(
         formData: QuestionnaireResponseFormData;
     },
 ): Promise<RemoteDataResult<QuestionnaireResponseFormSaveResponse>> {
-    const { formData, questionnaireResponseSaveService, launchContextParameters, service } = props;
+    const { formData, launchContextParameters, serviceProvider } = props;
     const { formValues, context } = formData;
     const { questionnaireResponse, questionnaire } = context;
     const itemContext = calcInitialContext(formData.context, formValues);
@@ -197,7 +189,7 @@ export async function handleFormDataSave(
         fromFirstClassExtension(finalFCEQuestionnaireResponse);
     const fhirQuestionnaire: FHIRQuestionnaire = fromFirstClassExtension(questionnaire);
 
-    const constraintRemoteData = await service({
+    const constraintRemoteData = await serviceProvider.service({
         url: '/QuestionnaireResponse/$constraint-check',
         method: 'POST',
         data: {
@@ -213,12 +205,12 @@ export async function handleFormDataSave(
         return constraintRemoteData;
     }
 
-    const saveQRRemoteData = await questionnaireResponseSaveService(finalFHIRQuestionnaireResponse);
+    const saveQRRemoteData = await serviceProvider.saveFHIRResource(finalFHIRQuestionnaireResponse);
     if (isFailure(saveQRRemoteData)) {
         return saveQRRemoteData;
     }
 
-    const extractRemoteData = await service<any>({
+    const extractRemoteData = await serviceProvider.service<any>({
         method: 'POST',
         url: '/Questionnaire/$extract',
         data: {
