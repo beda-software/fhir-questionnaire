@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import React, { useMemo } from 'react';
+import React, { ReactElement, useMemo } from 'react';
 import { FormItems } from '../../vendor/sdc-qrf';
 
 import { RenderRemoteData } from '@beda.software/fhir-react';
@@ -32,8 +32,10 @@ interface Props
     onFailure?: (error: any) => void;
     onEdit?: (formValues: FormItems) => Promise<any>;
     readOnly?: boolean;
-    itemControlQuestionItemComponents?: ItemControlQuestionItemComponentMapping;
-    itemControlGroupItemComponents?: ItemControlGroupItemComponentMapping;
+    remoteDataRenderConfig?: {
+        renderFailure?: (error: any) => ReactElement;
+        renderLoading?: () => ReactElement;
+    };
 }
 
 export function onFormResponse(props: {
@@ -85,7 +87,7 @@ export function QuestionnaireResponseForm(props: Props) {
     const { response, onSubmit, readOnly } = useQuestionnaireResponseForm(props);
 
     return (
-        <RenderRemoteData remoteData={response}>
+        <RenderRemoteData remoteData={response} {...props.remoteDataRenderConfig}>
             {(formData) => (
                 <BaseQuestionnaireResponseForm formData={formData} onSubmit={onSubmit} readOnly={readOnly} {...props} />
             )}
