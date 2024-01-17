@@ -17,6 +17,8 @@ import {
 } from './questionnaire-response-form-data';
 import { BaseQuestionnaireResponseForm } from './BaseQuestionnaireResponseForm';
 
+export type { QuestionItemProps } from './BaseQuestionnaireResponseForm';
+export { useFieldController } from './BaseQuestionnaireResponseForm/hooks';
 export { questionnaireIdLoader } from './questionnaire-response-form-data';
 
 interface Props extends QuestionnaireResponseFormProps {

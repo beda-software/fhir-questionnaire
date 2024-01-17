@@ -17,6 +17,8 @@ import {
     QuestionnaireResponseFormProvider,
 } from '../../../vendor/sdc-qrf';
 
+export type { QuestionItemProps };
+
 export interface BaseQuestionnaireResponseFormProps {
     formData: QuestionnaireResponseFormData;
     onSubmit?: (formData: QuestionnaireResponseFormData) => Promise<any>;
