@@ -1,10 +1,6 @@
 import _ from 'lodash';
 import React, { useMemo } from 'react';
-import {
-    FormItems,
-    ItemControlGroupItemComponentMapping,
-    ItemControlQuestionItemComponentMapping,
-} from '../../vendor/sdc-qrf';
+import { FormItems } from '../../vendor/sdc-qrf';
 
 import { RenderRemoteData } from '@beda.software/fhir-react';
 import { RemoteDataResult, isSuccess } from '@beda.software/remote-data';
@@ -15,13 +11,23 @@ import {
     QuestionnaireResponseFormSaveResponse,
     useQuestionnaireResponseFormData,
 } from './questionnaire-response-form-data';
-import { BaseQuestionnaireResponseForm } from './BaseQuestionnaireResponseForm';
+import { BaseQuestionnaireResponseForm, BaseQuestionnaireResponseFormProps } from './BaseQuestionnaireResponseForm';
 
 export type { QuestionItemProps } from './BaseQuestionnaireResponseForm';
 export { useFieldController } from './BaseQuestionnaireResponseForm/hooks';
 export { questionnaireIdLoader } from './questionnaire-response-form-data';
 
-interface Props extends QuestionnaireResponseFormProps {
+interface Props
+    extends QuestionnaireResponseFormProps,
+        Pick<
+            BaseQuestionnaireResponseFormProps,
+            | 'questionItemComponents'
+            | 'itemControlQuestionItemComponents'
+            | 'itemControlGroupItemComponents'
+            | 'ItemWrapper'
+            | 'GroupWrapper'
+            | 'FormWrapper'
+        > {
     onSuccess?: (resource: QuestionnaireResponseFormSaveResponse) => void;
     onFailure?: (error: any) => void;
     onEdit?: (formValues: FormItems) => Promise<any>;
