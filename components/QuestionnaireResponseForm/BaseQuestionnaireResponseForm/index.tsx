@@ -39,9 +39,9 @@ export interface BaseQuestionnaireResponseFormProps {
     onEdit?: (formValues: FormItems) => Promise<any>;
     readOnly?: boolean;
     validation?: Pick<UseFormProps<FormItems>, 'resolver' | 'mode'>;
-    itemControlQuestionItemComponents?: ItemControlQuestionItemComponentMapping;
-    itemControlGroupItemComponents?: ItemControlGroupItemComponentMapping;
-    questionItemComponents?: QuestionItemComponentMapping;
+    widgetsByQuestionType?: QuestionItemComponentMapping;
+    widgetsByQuestionItemControl?: ItemControlQuestionItemComponentMapping;
+    widgetsByGroupQuestionItemControl?: ItemControlGroupItemComponentMapping;
     groupItemComponent?: GroupItemComponent;
 
     ItemWrapper?: ComponentType<ItemWrapperProps>;
@@ -117,16 +117,16 @@ export function BaseQuestionnaireResponseForm(props: BaseQuestionnaireResponseFo
     );
 
     const questionItemComponents = useMemo(
-        () => wrapControls(props.questionItemComponents),
-        [wrapControls, props.questionItemComponents],
+        () => wrapControls(props.widgetsByQuestionType),
+        [wrapControls, props.widgetsByQuestionType],
     );
     const itemControlQuestionItemComponents = useMemo(
-        () => wrapControls(props.itemControlQuestionItemComponents),
-        [wrapControls, props.itemControlQuestionItemComponents],
+        () => wrapControls(props.widgetsByQuestionItemControl),
+        [wrapControls, props.widgetsByQuestionItemControl],
     );
     const itemControlGroupItemComponents = useMemo(
-        () => wrapGroups(props.itemControlGroupItemComponents),
-        [wrapGroups, props.itemControlGroupItemComponents],
+        () => wrapGroups(props.widgetsByGroupQuestionItemControl),
+        [wrapGroups, props.widgetsByGroupQuestionItemControl],
     );
 
     const groupItemComponent = useMemo(

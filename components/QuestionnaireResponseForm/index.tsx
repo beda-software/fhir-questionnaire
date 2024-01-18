@@ -26,9 +26,9 @@ interface Props
     extends QuestionnaireResponseFormProps,
         Pick<
             BaseQuestionnaireResponseFormProps,
-            | 'questionItemComponents'
-            | 'itemControlQuestionItemComponents'
-            | 'itemControlGroupItemComponents'
+            | 'widgetsByQuestionType'
+            | 'widgetsByQuestionItemControl'
+            | 'widgetsByGroupQuestionItemControl'
             | 'ItemWrapper'
             | 'GroupWrapper'
             | 'FormWrapper'
