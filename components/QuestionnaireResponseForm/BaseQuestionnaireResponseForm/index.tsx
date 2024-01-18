@@ -19,6 +19,20 @@ import {
 
 export type { QuestionItemProps };
 
+export type FormWrapperProps = PropsWithChildren<{
+    handleSubmit: ReturnType<UseFormReturn<FormItems>['handleSubmit']>;
+}>;
+
+export type ItemWrapperProps = PropsWithChildren<{
+    item: QuestionItemProps;
+    control: QuestionItemComponent;
+}>;
+
+export type GroupWrapperProps = PropsWithChildren<{
+    item: GroupItemProps;
+    control: GroupItemComponent;
+}>;
+
 export interface BaseQuestionnaireResponseFormProps {
     formData: QuestionnaireResponseFormData;
     onSubmit?: (formData: QuestionnaireResponseFormData) => Promise<any>;
@@ -30,23 +44,9 @@ export interface BaseQuestionnaireResponseFormProps {
     questionItemComponents?: QuestionItemComponentMapping;
     groupItemComponent?: GroupItemComponent;
 
-    ItemWrapper?: ComponentType<
-        PropsWithChildren<{
-            item: QuestionItemProps;
-            control: QuestionItemComponent;
-        }>
-    >;
-    GroupWrapper?: ComponentType<
-        PropsWithChildren<{
-            item: GroupItemProps;
-            control: GroupItemComponent;
-        }>
-    >;
-    FormWrapper?: ComponentType<
-        PropsWithChildren<{
-            handleSubmit: ReturnType<UseFormReturn<FormItems>['handleSubmit']>;
-        }>
-    >;
+    ItemWrapper?: ComponentType<ItemWrapperProps>;
+    GroupWrapper?: ComponentType<GroupWrapperProps>;
+    FormWrapper?: ComponentType<FormWrapperProps>;
 }
 
 export function BaseQuestionnaireResponseForm(props: BaseQuestionnaireResponseFormProps) {

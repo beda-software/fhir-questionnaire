@@ -13,7 +13,12 @@ import {
 } from './questionnaire-response-form-data';
 import { BaseQuestionnaireResponseForm, BaseQuestionnaireResponseFormProps } from './BaseQuestionnaireResponseForm';
 
-export type { QuestionItemProps } from './BaseQuestionnaireResponseForm';
+export type {
+    QuestionItemProps,
+    FormWrapperProps,
+    ItemWrapperProps,
+    GroupWrapperProps,
+} from './BaseQuestionnaireResponseForm';
 export { useFieldController } from './BaseQuestionnaireResponseForm/hooks';
 export { questionnaireIdLoader } from './questionnaire-response-form-data';
 
