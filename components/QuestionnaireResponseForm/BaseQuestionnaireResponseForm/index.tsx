@@ -1,4 +1,4 @@
-import React, { ComponentType, useCallback, useMemo } from 'react';
+import React, { ComponentType, PropsWithChildren, useCallback, useMemo } from 'react';
 import _ from 'lodash';
 import { FormProvider, useForm, UseFormProps, UseFormReturn } from 'react-hook-form';
 
@@ -30,19 +30,23 @@ export interface BaseQuestionnaireResponseFormProps {
     questionItemComponents?: QuestionItemComponentMapping;
     groupItemComponent?: GroupItemComponent;
 
-    ItemWrapper?: ComponentType<{
-        item: QuestionItemProps;
-        control: QuestionItemComponent;
-        children: React.ReactElement;
-    }>;
-    GroupWrapper?: ComponentType<{
-        item: GroupItemProps;
-        control: GroupItemComponent;
-        children: React.ReactElement;
-    }>;
-    FormWrapper?: ComponentType<{
-        handleSubmit: ReturnType<UseFormReturn<FormItems>['handleSubmit']>;
-    }>;
+    ItemWrapper?: ComponentType<
+        PropsWithChildren<{
+            item: QuestionItemProps;
+            control: QuestionItemComponent;
+        }>
+    >;
+    GroupWrapper?: ComponentType<
+        PropsWithChildren<{
+            item: GroupItemProps;
+            control: GroupItemComponent;
+        }>
+    >;
+    FormWrapper?: ComponentType<
+        PropsWithChildren<{
+            handleSubmit: ReturnType<UseFormReturn<FormItems>['handleSubmit']>;
+        }>
+    >;
 }
 
 export function BaseQuestionnaireResponseForm(props: BaseQuestionnaireResponseFormProps) {
