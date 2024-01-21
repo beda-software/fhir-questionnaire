@@ -5,7 +5,7 @@ import { useController, useFormContext } from 'react-hook-form';
 import { useQuestionnaireResponseFormContext } from '../../../vendor/sdc-qrf';
 import { QuestionnaireItem } from '../../../contrib/aidbox';
 
-export function useFieldController(fieldName: Array<string | number>, questionItem: QuestionnaireItem) {
+export function useFieldController<T = any>(fieldName: Array<string | number>, questionItem: QuestionnaireItem) {
     const qrfContext = useQuestionnaireResponseFormContext();
     const { readOnly, repeats } = questionItem;
     const { control } = useFormContext();
@@ -37,6 +37,8 @@ export function useFieldController(fieldName: Array<string | number>, questionIt
 
     return {
         ...field,
+        value: field.value as T | undefined,
+        onChange: (value: T | undefined) => field.onChange(value),
         onMultiChange,
         fieldState,
         disabled: readOnly || qrfContext.readOnly,
