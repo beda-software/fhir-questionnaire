@@ -1,14 +1,14 @@
+import React, { ReactChild, useEffect, useContext, useMemo, useRef } from 'react';
+
 import fhirpath from 'fhirpath';
 import _ from 'lodash';
 import isEqual from 'lodash/isEqual';
-import React, { ReactChild, useEffect, useContext, useMemo, useRef } from 'react';
 
-import { QuestionnaireItem } from '../../contrib/aidbox';
-
-import { useQuestionnaireResponseFormContext } from './hooks';
 import { QRFContext } from './context';
-import { ItemContext, QRFContextData, QuestionItemProps, QuestionItemsProps } from './types';
-import { calcContext, getBranchItems, getEnabledQuestions, wrapAnswerValue } from './utils';
+import { useQuestionnaireResponseFormContext } from './hooks';
+import { ItemContext, QRFContextData, QuestionItemProps } from './types';
+import { calcContext, getBranchItems, wrapAnswerValue } from './utils';
+import { QuestionnaireItem } from '../../contrib/aidbox';
 
 export function usePreviousValue<T = any>(value: T) {
     const prevValue = useRef<T>();
@@ -22,19 +22,6 @@ export function usePreviousValue<T = any>(value: T) {
     });
 
     return prevValue.current;
-}
-
-export function QuestionItems(props: QuestionItemsProps) {
-    const { questionItems, parentPath, context } = props;
-    const { formValues } = useQuestionnaireResponseFormContext();
-
-    return (
-        <React.Fragment>
-            {getEnabledQuestions(questionItems, parentPath, formValues, context).map((item, index) => {
-                return <QuestionItem key={index} questionItem={item} context={context} parentPath={parentPath} />;
-            })}
-        </React.Fragment>
-    );
 }
 
 export function QuestionItem(props: QuestionItemProps) {

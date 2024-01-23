@@ -1,4 +1,5 @@
 import React, { ComponentType, PropsWithChildren, useCallback, useMemo } from 'react';
+
 import _ from 'lodash';
 import { FormProvider, useForm, UseFormProps, UseFormReturn } from 'react-hook-form';
 
@@ -12,16 +13,18 @@ import {
     QuestionItemComponent,
     QuestionItemComponentMapping,
     QuestionItemProps,
-    QuestionItems,
+    QuestionItem,
     QuestionnaireResponseFormData,
     QuestionnaireResponseFormProvider,
+    getEnabledQuestions,
 } from '../../../vendor/sdc-qrf';
 
 export type { QuestionItemProps };
 
-export type FormWrapperProps = PropsWithChildren<{
+export interface FormWrapperProps {
     handleSubmit: ReturnType<UseFormReturn<FormItems>['handleSubmit']>;
-}>;
+    items: Array<ReturnType<typeof QuestionItem>>;
+}
 
 export type ItemWrapperProps = PropsWithChildren<{
     item: QuestionItemProps;
@@ -46,20 +49,11 @@ export interface BaseQuestionnaireResponseFormProps {
 
     ItemWrapper?: ComponentType<ItemWrapperProps>;
     GroupWrapper?: ComponentType<GroupWrapperProps>;
-    FormWrapper?: ComponentType<FormWrapperProps>;
+    FormWrapper: ComponentType<FormWrapperProps>;
 }
 
 export function BaseQuestionnaireResponseForm(props: BaseQuestionnaireResponseFormProps) {
-    const {
-        formData,
-        readOnly,
-        validation,
-        onSubmit,
-        onEdit,
-        ItemWrapper,
-        GroupWrapper,
-        FormWrapper = React.Fragment,
-    } = props;
+    const { formData, readOnly, validation, onSubmit, onEdit, ItemWrapper, GroupWrapper, FormWrapper } = props;
 
     const form = useForm<FormItems>({
         defaultValues: formData.formValues,
@@ -169,13 +163,26 @@ export function BaseQuestionnaireResponseForm(props: BaseQuestionnaireResponseFo
                     handleSubmit={form.handleSubmit(async () => {
                         await onSubmit?.({ ...formData, formValues });
                     })}
-                >
-                    <QuestionItems
-                        questionItems={formData.context.questionnaire.item!}
-                        parentPath={[]}
-                        context={calcInitialContext(formData.context, formValues)}
-                    />
-                </FormWrapper>
+                    items={useMemo(() => {
+                        const initialContext = calcInitialContext(formData.context, formValues);
+                        const parentPath = Array.of<string>();
+                        return getEnabledQuestions(
+                            formData.context.questionnaire.item!,
+                            parentPath,
+                            formValues,
+                            initialContext,
+                        ).map((item, index) => {
+                            return (
+                                <QuestionItem
+                                    key={index}
+                                    questionItem={item}
+                                    context={initialContext}
+                                    parentPath={parentPath}
+                                />
+                            );
+                        });
+                    }, [formData.context, formValues])}
+                />
             </QuestionnaireResponseFormProvider>
         </FormProvider>
     );
