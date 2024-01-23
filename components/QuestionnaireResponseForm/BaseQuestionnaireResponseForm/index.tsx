@@ -171,10 +171,10 @@ export function BaseQuestionnaireResponseForm(props: BaseQuestionnaireResponseFo
                             parentPath,
                             formValues,
                             initialContext,
-                        ).map((item, index) => {
+                        ).map((item) => {
                             return (
                                 <QuestionItem
-                                    key={index}
+                                    key={item.linkId}
                                     questionItem={item}
                                     context={initialContext}
                                     parentPath={parentPath}
