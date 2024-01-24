@@ -1,4 +1,4 @@
-import React, { ComponentType, PropsWithChildren, useCallback, useMemo } from 'react';
+import React, { ComponentType, PropsWithChildren, useCallback, useEffect, useMemo } from 'react';
 
 import _ from 'lodash';
 import { FormProvider, useForm, UseFormProps, UseFormReturn } from 'react-hook-form';
@@ -39,7 +39,7 @@ export type GroupWrapperProps = PropsWithChildren<{
 export interface BaseQuestionnaireResponseFormProps {
     formData: QuestionnaireResponseFormData;
     onSubmit?: (formData: QuestionnaireResponseFormData) => Promise<any>;
-    onEdit?: (formValues: FormItems) => Promise<any>;
+    onEdit?: (formData: QuestionnaireResponseFormData) => Promise<any>;
     readOnly?: boolean;
     validation?: Pick<UseFormProps<FormItems>, 'resolver' | 'mode'>;
     widgetsByQuestionType?: QuestionItemComponentMapping;
@@ -59,6 +59,13 @@ export function BaseQuestionnaireResponseForm(props: BaseQuestionnaireResponseFo
         defaultValues: formData.formValues,
         ...validation,
     });
+
+    useEffect(() => {
+        const subscription = form.watch((formValues) => {
+            onEdit?.({ formValues, context: formData.context });
+        });
+        return () => subscription.unsubscribe();
+    }, [form, formData.context, onEdit]);
 
     const formValues = form.watch();
 
@@ -151,7 +158,6 @@ export function BaseQuestionnaireResponseForm(props: BaseQuestionnaireResponseFo
                 formValues={formValues}
                 setFormValues={(values, fieldPath, value) => {
                     form.setValue(fieldPath.join('.'), value);
-                    onEdit?.(values);
                 }}
                 groupItemComponent={groupItemComponent}
                 itemControlGroupItemComponents={itemControlGroupItemComponents}

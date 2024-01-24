@@ -1,3 +1,5 @@
+import { formatFHIRDateTime, initServices, useService } from '@beda.software/fhir-react';
+import { RemoteDataResult, isFailure, isSuccess, mapSuccess, success } from '@beda.software/remote-data';
 import {
     QuestionnaireResponse as FHIRQuestionnaireResponse,
     Parameters,
@@ -5,9 +7,6 @@ import {
     Questionnaire as FHIRQuestionnaire,
 } from 'fhir/r4b';
 import moment from 'moment';
-
-import { formatFHIRDateTime, initServices, useService } from '@beda.software/fhir-react';
-import { RemoteDataResult, isFailure, isSuccess, mapSuccess, success } from '@beda.software/remote-data';
 
 import {
     QuestionnaireResponse as FCEQuestionnaireResponse,
@@ -22,6 +21,7 @@ import {
     removeDisabledAnswers,
     QuestionnaireResponseFormData,
 } from '../../vendor/sdc-qrf';
+
 export type { QuestionnaireResponseFormData } from '../../vendor/sdc-qrf';
 
 export type QuestionnaireResponseFormSaveResponse = {
@@ -34,6 +34,7 @@ export interface QuestionnaireResponseFormProps {
     initialQuestionnaireResponse?: Partial<FHIRQuestionnaireResponse>;
     launchContextParameters?: ParametersParameter[];
     serviceProvider: ReturnType<typeof initServices>;
+    autosave?: boolean;
 }
 
 interface QuestionnaireServiceLoader {
@@ -95,6 +96,28 @@ export function toQuestionnaireResponseFormData(
     };
 }
 
+export function fromQuestionnaireResponseFormData(
+    formData: QuestionnaireResponseFormData,
+    responseSubmissionStatus?: Pick<FCEQuestionnaireResponse, 'status' | 'authored'>,
+) {
+    const { formValues, context } = formData;
+    const { questionnaireResponse, questionnaire } = context;
+    const itemContext = calcInitialContext(formData.context, formValues);
+    const enabledQuestionsFormValues = removeDisabledAnswers(questionnaire, formValues, itemContext);
+
+    const finalFCEQuestionnaireResponse: FCEQuestionnaireResponse = {
+        ...questionnaireResponse,
+        ...mapFormToResponse(enabledQuestionsFormValues, questionnaire),
+        ...responseSubmissionStatus,
+    };
+
+    return {
+        questionnaire: fromFirstClassExtension(questionnaire),
+        questionnaireResponse: fromFirstClassExtension(finalFCEQuestionnaireResponse),
+        launchContextParameters: formData.context.launchContextParameters,
+    };
+}
+
 /*
     Hook uses for:
     On mount:
@@ -112,8 +135,9 @@ export function toQuestionnaireResponseFormData(
        resources specified in the mappers
     8. Returns updated QuestionnaireResponse resource and extract result
 **/
-export async function loadQuestionnaireResponseFormData(props: QuestionnaireResponseFormProps) {
-    const { launchContextParameters, questionnaireLoader, initialQuestionnaireResponse, serviceProvider } = props;
+async function loadQuestionnaireResponseFormData(props: QuestionnaireResponseFormProps) {
+    const { launchContextParameters, questionnaireLoader, initialQuestionnaireResponse, serviceProvider, autosave } =
+        props;
 
     const fetchQuestionnaire = () => {
         if (questionnaireLoader.type === 'raw-id') {
@@ -155,6 +179,10 @@ export async function loadQuestionnaireResponseFormData(props: QuestionnaireResp
             url: '/Questionnaire/$populate',
             data: params,
         });
+        if (isSuccess(populateRemoteData) && autosave) {
+            populateRemoteData.data.status = 'in-progress';
+            populateRemoteData = await serviceProvider.saveFHIRResource(populateRemoteData.data);
+        }
     }
 
     return mapSuccess(populateRemoteData, (populatedQR) => {
@@ -174,20 +202,11 @@ export async function handleFormDataSave(
     },
 ): Promise<RemoteDataResult<QuestionnaireResponseFormSaveResponse>> {
     const { formData, launchContextParameters, serviceProvider } = props;
-    const { formValues, context } = formData;
-    const { questionnaireResponse, questionnaire } = context;
-    const itemContext = calcInitialContext(formData.context, formValues);
-    const enabledQuestionsFormValues = removeDisabledAnswers(questionnaire, formValues, itemContext);
 
-    const finalFCEQuestionnaireResponse: FCEQuestionnaireResponse = {
-        ...questionnaireResponse,
-        ...mapFormToResponse(enabledQuestionsFormValues, questionnaire),
+    const { questionnaire, questionnaireResponse } = fromQuestionnaireResponseFormData(formData, {
         status: 'completed',
         authored: formatFHIRDateTime(moment()),
-    };
-    const finalFHIRQuestionnaireResponse: FHIRQuestionnaireResponse =
-        fromFirstClassExtension(finalFCEQuestionnaireResponse);
-    const fhirQuestionnaire: FHIRQuestionnaire = fromFirstClassExtension(questionnaire);
+    });
 
     const constraintRemoteData = await serviceProvider.service({
         url: '/QuestionnaireResponse/$constraint-check',
@@ -195,8 +214,8 @@ export async function handleFormDataSave(
         data: {
             resourceType: 'Parameters',
             parameter: [
-                { name: 'Questionnaire', resource: fhirQuestionnaire },
-                { name: 'QuestionnaireResponse', resource: finalFHIRQuestionnaireResponse },
+                { name: 'Questionnaire', resource: questionnaire },
+                { name: 'QuestionnaireResponse', resource: questionnaireResponse },
                 ...(launchContextParameters || []),
             ],
         },
@@ -205,7 +224,7 @@ export async function handleFormDataSave(
         return constraintRemoteData;
     }
 
-    const saveQRRemoteData = await serviceProvider.saveFHIRResource(finalFHIRQuestionnaireResponse);
+    const saveQRRemoteData = await serviceProvider.saveFHIRResource(questionnaireResponse);
     if (isFailure(saveQRRemoteData)) {
         return saveQRRemoteData;
     }
@@ -216,7 +235,7 @@ export async function handleFormDataSave(
         data: {
             resourceType: 'Parameters',
             parameter: [
-                { name: 'questionnaire', resource: fhirQuestionnaire },
+                { name: 'questionnaire', resource: questionnaire },
                 { name: 'questionnaire_response', resource: saveQRRemoteData.data },
                 ...(launchContextParameters || []),
             ],
@@ -250,6 +269,17 @@ export function useQuestionnaireResponseFormData(props: QuestionnaireResponseFor
         });
     }, [props, ...deps]);
 
+    const handleUpdate = async (
+        qrFormData: QuestionnaireResponseFormData,
+    ): Promise<RemoteDataResult<QuestionnaireResponseFormSaveResponse>> => {
+        const draft = fromQuestionnaireResponseFormData(qrFormData, { status: 'in-progress' });
+        const responseRemoteData = await props.serviceProvider.saveFHIRResource(draft.questionnaireResponse);
+        return mapSuccess(responseRemoteData, (questionnaireResponse) => ({
+            questionnaireResponse,
+            extracted: false,
+        }));
+    };
+
     const handleSave = async (
         qrFormData: QuestionnaireResponseFormData,
     ): Promise<RemoteDataResult<QuestionnaireResponseFormSaveResponse>> =>
@@ -258,5 +288,5 @@ export function useQuestionnaireResponseFormData(props: QuestionnaireResponseFor
             formData: qrFormData,
         });
 
-    return { response, handleSave };
+    return { response, handleSave, handleUpdate };
 }

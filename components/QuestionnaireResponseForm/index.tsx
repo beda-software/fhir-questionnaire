@@ -2,7 +2,7 @@ import React, { ReactElement, useMemo } from 'react';
 
 import { RenderRemoteData } from '@beda.software/fhir-react';
 import { RemoteDataResult, isSuccess } from '@beda.software/remote-data';
-import _ from 'lodash';
+import _, { debounce } from 'lodash';
 
 import { BaseQuestionnaireResponseForm, BaseQuestionnaireResponseFormProps } from './BaseQuestionnaireResponseForm';
 import {
@@ -11,7 +11,6 @@ import {
     QuestionnaireResponseFormSaveResponse,
     useQuestionnaireResponseFormData,
 } from './questionnaire-response-form-data';
-import { FormItems } from '../../vendor/sdc-qrf';
 
 export type {
     QuestionItemProps,
@@ -20,7 +19,7 @@ export type {
     GroupWrapperProps,
 } from './BaseQuestionnaireResponseForm';
 export { useFieldController } from './BaseQuestionnaireResponseForm/hooks';
-export { questionnaireIdLoader } from './questionnaire-response-form-data';
+export { questionnaireIdLoader, questionnaireIdWOAssembleLoader } from './questionnaire-response-form-data';
 
 interface Props
     extends QuestionnaireResponseFormProps,
@@ -35,7 +34,6 @@ interface Props
         > {
     onSuccess?: (resource: QuestionnaireResponseFormSaveResponse) => void;
     onFailure?: (error: any) => void;
-    onEdit?: (formValues: FormItems) => Promise<any>;
     readOnly?: boolean;
     remoteDataRenderConfig?: {
         renderFailure?: (error: any) => ReactElement;
@@ -61,13 +59,15 @@ export function onFormResponse(props: {
     }
 }
 
+const TIMEOUT_TO_SAVE_DRAFT_RESPONSE_AFTER_MS = 1000;
+
 export function useQuestionnaireResponseForm(props: Props) {
     // TODO find what cause rerender and fix it
     // remove this temporary hack
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const memoizedProps = useMemo(() => props, [JSON.stringify(props)]);
 
-    const { response, handleSave } = useQuestionnaireResponseFormData(memoizedProps);
+    const { response, handleSave, handleUpdate } = useQuestionnaireResponseFormData(memoizedProps);
     const { onSuccess, onFailure, readOnly, initialQuestionnaireResponse } = memoizedProps;
 
     const onSubmit = async (formData: QuestionnaireResponseFormData) => {
@@ -85,16 +85,37 @@ export function useQuestionnaireResponseForm(props: Props) {
         onFormResponse({ response: saveResponse, onSuccess, onFailure });
     };
 
-    return { response, onSubmit, readOnly };
+    const saveDraftDebounced = debounce(async (formData: QuestionnaireResponseFormData) => {
+        delete formData.context.questionnaireResponse.meta;
+
+        await handleUpdate(formData);
+    }, TIMEOUT_TO_SAVE_DRAFT_RESPONSE_AFTER_MS);
+
+    return {
+        response,
+        onSubmit,
+        onEdit: props.autosave
+            ? async (formData: QuestionnaireResponseFormData) => {
+                  await saveDraftDebounced(formData);
+              }
+            : undefined,
+        readOnly,
+    };
 }
 
 export function QuestionnaireResponseForm(props: Props) {
-    const { response, onSubmit, readOnly } = useQuestionnaireResponseForm(props);
+    const { response, onSubmit, onEdit, readOnly } = useQuestionnaireResponseForm(props);
 
     return (
         <RenderRemoteData remoteData={response} {...props.remoteDataRenderConfig}>
             {(formData) => (
-                <BaseQuestionnaireResponseForm formData={formData} onSubmit={onSubmit} readOnly={readOnly} {...props} />
+                <BaseQuestionnaireResponseForm
+                    formData={formData}
+                    onSubmit={onSubmit}
+                    onEdit={onEdit}
+                    readOnly={readOnly}
+                    {...props}
+                />
             )}
         </RenderRemoteData>
     );
