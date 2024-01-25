@@ -19,6 +19,7 @@ git submodule add 'https or git repository link' packages/@beda.software/fhir-qu
     }
 }
 ```
+Note that CRA-based applications do not allow ts or tsx to be transpilled outside of the `src` folder, so the workspace package might need to be installed under `src/packages/@beda.software/fhir-questionnaire` instead.
 - Link workspace as a project dependency
 ```sh
 yarn install
