@@ -174,11 +174,17 @@ async function loadQuestionnaireResponseFormData(props: QuestionnaireResponseFor
     if (initialQuestionnaireResponse?.id) {
         populateRemoteData = success(initialQuestionnaireResponse as FHIRQuestionnaireResponse);
     } else {
-        populateRemoteData = await serviceProvider.service<FHIRQuestionnaireResponse>({
-            method: 'POST',
-            url: '/Questionnaire/$populate',
-            data: params,
-        });
+        populateRemoteData = mapSuccess(
+            await serviceProvider.service<FHIRQuestionnaireResponse>({
+                method: 'POST',
+                url: '/Questionnaire/$populate',
+                data: params,
+            }),
+            (draft): FHIRQuestionnaireResponse => ({
+                ...initialQuestionnaireResponse,
+                ...draft,
+            }),
+        );
         if (isSuccess(populateRemoteData) && autosave) {
             populateRemoteData.data.status = 'in-progress';
             populateRemoteData = await serviceProvider.saveFHIRResource(populateRemoteData.data);
@@ -187,10 +193,7 @@ async function loadQuestionnaireResponseFormData(props: QuestionnaireResponseFor
 
     return mapSuccess(populateRemoteData, (populatedQR) => {
         const questionnaire = questionnaireRemoteData.data;
-        const questionnaireResponse = {
-            ...initialQuestionnaireResponse,
-            ...populatedQR,
-        };
+        const questionnaireResponse = populatedQR;
 
         return toQuestionnaireResponseFormData(questionnaire, questionnaireResponse, launchContextParameters);
     });
