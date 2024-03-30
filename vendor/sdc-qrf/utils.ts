@@ -633,9 +633,13 @@ export function getEnabledQuestions(
     context: ItemContext,
 ) {
     return _.filter(questionnaireItems, (qItem) => {
-        const { linkId } = qItem;
+        const { linkId, hidden } = qItem;
 
         if (!linkId) {
+            return false;
+        }
+
+        if (hidden) {
             return false;
         }
 
