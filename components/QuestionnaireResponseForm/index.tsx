@@ -71,7 +71,15 @@ export function useQuestionnaireResponseForm(props: Props) {
     const { response, handleSave, handleUpdate } = useQuestionnaireResponseFormData(memoizedProps);
     const { onSuccess, onFailure, readOnly, initialQuestionnaireResponse } = memoizedProps;
 
+    const saveDraftDebounced = debounce(async (formData: QuestionnaireResponseFormData) => {
+        delete formData.context.questionnaireResponse.meta;
+
+        await handleUpdate(formData);
+    }, TIMEOUT_TO_SAVE_DRAFT_RESPONSE_AFTER_MS);
+
     const onSubmit = async (formData: QuestionnaireResponseFormData) => {
+        await saveDraftDebounced.flush();
+
         const modifiedFormData = _.merge({}, formData, {
             context: {
                 questionnaireResponse: {
@@ -85,12 +93,6 @@ export function useQuestionnaireResponseForm(props: Props) {
         const saveResponse = await handleSave(modifiedFormData);
         onFormResponse({ response: saveResponse, onSuccess, onFailure });
     };
-
-    const saveDraftDebounced = debounce(async (formData: QuestionnaireResponseFormData) => {
-        delete formData.context.questionnaireResponse.meta;
-
-        await handleUpdate(formData);
-    }, TIMEOUT_TO_SAVE_DRAFT_RESPONSE_AFTER_MS);
 
     return {
         response,
