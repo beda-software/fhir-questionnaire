@@ -62,7 +62,7 @@ export function BaseQuestionnaireResponseForm(props: BaseQuestionnaireResponseFo
 
     useEffect(() => {
         const subscription = form.watch((formValues) => {
-            onEdit?.({ formValues, context: formData.context });
+            onEdit?.({ formValues: formValues as FormItems, context: formData.context });
         });
         return () => subscription.unsubscribe();
     }, [form, formData.context, onEdit]);
