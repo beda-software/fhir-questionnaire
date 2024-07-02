@@ -1,4 +1,4 @@
-import React, { ReactChild, useEffect, useContext, useMemo, useRef } from 'react';
+import { ReactChild, useEffect, useContext, useMemo, useRef } from 'react';
 
 import fhirpath from 'fhirpath';
 import _ from 'lodash';
