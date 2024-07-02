@@ -1,4 +1,4 @@
-import React, { ReactElement, useMemo } from 'react';
+import { ReactElement, useMemo } from 'react';
 
 import { RenderRemoteData } from '@beda.software/fhir-react';
 import { RemoteDataResult, isSuccess } from '@beda.software/remote-data';
