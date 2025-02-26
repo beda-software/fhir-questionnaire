@@ -1,5 +1,6 @@
 import {
     Coding as FHIRCoding,
+    Quantity as FHIRQuantity,
     QuestionnaireResponseItem as FHIRQuestionnaireResponseItem,
     QuestionnaireResponseItemAnswer as FHIRQuestionnaireResponseItemAnswer,
     Reference as FHIRReference,
@@ -38,7 +39,7 @@ function processAnswer(answer: FHIRQuestionnaireResponseItemAnswer): FCEQuestion
             Reference: fromFHIRReference(value),
         }),
         valueTime: (value: string) => ({ time: value }),
-        valueQuantity: (value: FHIRCoding) => ({ Quantity: value }),
+        valueQuantity: (value: FHIRQuantity) => ({ Quantity: value }),
     };
 
     for (const key in valueHandlers) {
