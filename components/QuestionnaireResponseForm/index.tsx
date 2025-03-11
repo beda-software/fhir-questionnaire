@@ -32,6 +32,7 @@ interface Props
             | 'GroupWrapper'
             | 'FormWrapper'
             | 'validation'
+            | 'groupItemComponent'
         > {
     onSuccess?: (resource: QuestionnaireResponseFormSaveResponse) => void;
     onFailure?: (error: any) => void;
