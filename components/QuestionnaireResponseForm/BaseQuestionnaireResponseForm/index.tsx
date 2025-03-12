@@ -18,6 +18,7 @@ import {
     QuestionnaireResponseFormProvider,
     getEnabledQuestions,
 } from '../../../vendor/sdc-qrf';
+import { GroupComponent } from './GroupComponent';
 
 export type { QuestionItemProps };
 
@@ -131,24 +132,15 @@ export function BaseQuestionnaireResponseForm(props: BaseQuestionnaireResponseFo
     );
 
     const groupItemComponent = useMemo(
-        () =>
-            function GroupItemComponent(itemProps: GroupItemProps) {
-                const Control = props.groupItemComponent;
-
-                if (!Control) {
-                    return null;
-                }
-
-                if (GroupWrapper) {
-                    return (
-                        <GroupWrapper item={itemProps} control={Control}>
-                            <Control {...itemProps} />
-                        </GroupWrapper>
-                    );
-                }
-
-                return <Control {...itemProps} />;
-            },
+        () => (itemProps: GroupItemProps) =>
+            (
+                <GroupComponent
+                    itemProps={itemProps}
+                    Control={props.groupItemComponent}
+                    GroupWrapper={GroupWrapper}
+                    questionItemComponents={questionItemComponents}
+                />
+            ),
         [GroupWrapper, props.groupItemComponent],
     );
 
