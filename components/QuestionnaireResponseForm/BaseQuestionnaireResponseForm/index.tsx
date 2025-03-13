@@ -1,7 +1,9 @@
 import { ComponentType, PropsWithChildren, useCallback, useEffect, useMemo } from 'react';
 
 import _ from 'lodash';
-import { FormProvider, useForm, UseFormProps, UseFormReturn } from 'react-hook-form';
+import { FormProvider, useForm, UseFormReturn } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
 
 import {
     calcInitialContext,
@@ -18,6 +20,7 @@ import {
     QuestionnaireResponseFormProvider,
     getEnabledQuestions,
 } from '../../../vendor/sdc-qrf';
+import { questionnaireToValidationSchema } from './utils';
 
 export type { QuestionItemProps };
 
@@ -41,7 +44,6 @@ export interface BaseQuestionnaireResponseFormProps {
     onSubmit?: (formData: QuestionnaireResponseFormData) => Promise<any>;
     onEdit?: (formData: QuestionnaireResponseFormData) => Promise<any>;
     readOnly?: boolean;
-    validation?: Pick<UseFormProps<FormItems>, 'resolver' | 'mode'>;
     widgetsByQuestionType?: QuestionItemComponentMapping;
     widgetsByQuestionItemControl?: ItemControlQuestionItemComponentMapping;
     widgetsByGroupQuestionItemControl?: ItemControlGroupItemComponentMapping;
@@ -53,11 +55,17 @@ export interface BaseQuestionnaireResponseFormProps {
 }
 
 export function BaseQuestionnaireResponseForm(props: BaseQuestionnaireResponseFormProps) {
-    const { formData, readOnly, validation, onSubmit, onEdit, ItemWrapper, GroupWrapper, FormWrapper } = props;
+    const { formData, readOnly, onSubmit, onEdit, ItemWrapper, GroupWrapper, FormWrapper } = props;
+
+    const schema: yup.AnyObjectSchema = useMemo(
+        () => questionnaireToValidationSchema(formData.context.questionnaire),
+        [formData.context.questionnaire],
+    );
 
     const form = useForm<FormItems>({
         defaultValues: formData.formValues,
-        ...validation,
+        resolver: yupResolver(schema),
+        mode: 'onChange',
     });
 
     useEffect(() => {
