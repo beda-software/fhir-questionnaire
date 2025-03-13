@@ -166,10 +166,8 @@ export function getFieldErrorMessage(
     }
     // replace [0], [1] with .0, .1 to match field.name
     const errorMessageWithInternalFieldName = fieldState.error.message.replace(/\[(\d+)\]/g, '.$1');
-    /* console.log(errorMessageWithInternalFieldName, field.name, text); */
 
     const errorMessageWithHumanReadableFieldName = errorMessageWithInternalFieldName.replace(field.name, text ?? '');
-    console.log(errorMessageWithHumanReadableFieldName)
 
     return errorMessageWithHumanReadableFieldName;
 }
