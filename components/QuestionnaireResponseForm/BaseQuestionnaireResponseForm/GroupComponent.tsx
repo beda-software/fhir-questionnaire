@@ -1,0 +1,75 @@
+import { GroupWrapperProps } from '.';
+import { QuestionnaireItem } from '../../../contrib/aidbox';
+import { GroupItemProps, GroupItemComponent, QuestionItemComponent } from '../../../vendor/sdc-qrf';
+import { ComponentType, FunctionComponent, PropsWithChildren, useCallback, useState } from 'react';
+
+type GroupItemComponentExtended = FunctionComponent<PropsWithChildren<GroupItemProps> & { addItem: () => void }>;
+
+interface Props extends PropsWithChildren {
+    itemProps: GroupItemProps;
+    Control: GroupItemComponent | undefined;
+    questionItemComponents: { [x: string]: QuestionItemComponent };
+    GroupWrapper?: ComponentType<GroupWrapperProps>;
+    addItem?: () => void;
+}
+
+export function GroupComponent(props: Props) {
+    const { itemProps, Control, GroupWrapper, questionItemComponents } = props;
+    if (!Control) return null;
+
+    const GroupWidgetComponent = Control as GroupItemComponentExtended;
+    const { questionItem, context, parentPath } = itemProps;
+    const { repeats, linkId } = questionItem;
+
+    const [items, setItems] = useState([{}]);
+
+    const addItem = useCallback(() => {
+        setItems((prevItems) => [...prevItems, {}]);
+    }, []);
+
+    const renderQuestionItem = (i: QuestionnaireItem, index: number) => {
+        const updatedParentPath = repeats
+            ? [...parentPath, linkId, 'items', String(index)]
+            : [...parentPath, linkId, 'items'];
+
+        const Component = questionItemComponents[i.type];
+
+        if (i.type === 'group') {
+            return (
+                <GroupComponent
+                    {...props}
+                    itemProps={{ ...itemProps, questionItem: i, parentPath: updatedParentPath }}
+                    key={`${i.linkId}-${index}`}
+                />
+            );
+        }
+
+        if (!Component) {
+            console.error(`Item type ${i.type} is not supported`);
+            return null;
+        }
+
+        return (
+            <Component
+                key={`${i.linkId}-${index}`}
+                context={context[0]}
+                parentPath={updatedParentPath}
+                questionItem={i}
+            />
+        );
+    };
+
+    const renderGroupContent = () => (
+        <GroupWidgetComponent {...itemProps} addItem={addItem}>
+            {items.flatMap((_, index) => questionItem.item?.map((i) => renderQuestionItem(i, index)) || [])}
+        </GroupWidgetComponent>
+    );
+
+    return GroupWrapper ? (
+        <GroupWrapper item={itemProps} control={Control}>
+            {renderGroupContent()}
+        </GroupWrapper>
+    ) : (
+        renderGroupContent()
+    );
+}

@@ -1,27 +1,28 @@
 import { ComponentType, PropsWithChildren, useCallback, useEffect, useMemo } from 'react';
 
+import { yupResolver } from '@hookform/resolvers/yup';
 import _ from 'lodash';
 import { FormProvider, useForm, UseFormReturn } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 
 import {
     calcInitialContext,
     FormItems,
+    getEnabledQuestions,
     GroupItemComponent,
     GroupItemProps,
     ItemControlGroupItemComponentMapping,
     ItemControlQuestionItemComponentMapping,
+    QuestionItem,
     QuestionItemComponent,
     QuestionItemComponentMapping,
     QuestionItemProps,
-    QuestionItem,
     QuestionnaireResponseFormData,
     QuestionnaireResponseFormProvider,
-    getEnabledQuestions,
 } from '../../../vendor/sdc-qrf';
-import { questionnaireToValidationSchema } from './utils';
+import { GroupComponent } from './GroupComponent';
 
+import { questionnaireToValidationSchema } from './utils';
 export type { QuestionItemProps };
 
 export interface FormWrapperProps {
@@ -139,24 +140,15 @@ export function BaseQuestionnaireResponseForm(props: BaseQuestionnaireResponseFo
     );
 
     const groupItemComponent = useMemo(
-        () =>
-            function GroupItemComponent(itemProps: GroupItemProps) {
-                const Control = props.groupItemComponent;
-
-                if (!Control) {
-                    return null;
-                }
-
-                if (GroupWrapper) {
-                    return (
-                        <GroupWrapper item={itemProps} control={Control}>
-                            <Control {...itemProps} />
-                        </GroupWrapper>
-                    );
-                }
-
-                return <Control {...itemProps} />;
-            },
+        () => (itemProps: GroupItemProps) =>
+            (
+                <GroupComponent
+                    itemProps={itemProps}
+                    Control={props.groupItemComponent}
+                    GroupWrapper={GroupWrapper}
+                    questionItemComponents={questionItemComponents}
+                />
+            ),
         [GroupWrapper, props.groupItemComponent],
     );
 
