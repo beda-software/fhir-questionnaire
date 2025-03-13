@@ -6,8 +6,8 @@ import {
     QuestionnaireItemEnableWhen,
     QuestionnaireItemAnswerOption,
     QuestionnaireItemEnableWhenAnswer,
-} from '@beda.software/aidbox-types';
-import { getChecker } from 'sdc-qrf';
+} from '../../../contrib/aidbox';
+import { getChecker } from '../../../vendor/sdc-qrf';
 import { ControllerFieldState, ControllerRenderProps, FieldValues } from 'react-hook-form';
 
 export function questionnaireToValidationSchema(questionnaire: Questionnaire) {
