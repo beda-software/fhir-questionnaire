@@ -1,25 +1,28 @@
 import { ComponentType, PropsWithChildren, useCallback, useEffect, useMemo } from 'react';
 
+import { yupResolver } from '@hookform/resolvers/yup';
 import _ from 'lodash';
-import { FormProvider, useForm, UseFormProps, UseFormReturn } from 'react-hook-form';
+import { FormProvider, useForm, UseFormReturn } from 'react-hook-form';
+import * as yup from 'yup';
 
 import {
     calcInitialContext,
     FormItems,
+    getEnabledQuestions,
     GroupItemComponent,
     GroupItemProps,
     ItemControlGroupItemComponentMapping,
     ItemControlQuestionItemComponentMapping,
+    QuestionItem,
     QuestionItemComponent,
     QuestionItemComponentMapping,
     QuestionItemProps,
-    QuestionItem,
     QuestionnaireResponseFormData,
     QuestionnaireResponseFormProvider,
-    getEnabledQuestions,
 } from '../../../vendor/sdc-qrf';
 import { GroupComponent } from './GroupComponent';
 
+import { questionnaireToValidationSchema } from './utils';
 export type { QuestionItemProps };
 
 export interface FormWrapperProps {
@@ -42,7 +45,6 @@ export interface BaseQuestionnaireResponseFormProps {
     onSubmit?: (formData: QuestionnaireResponseFormData) => Promise<any>;
     onEdit?: (formData: QuestionnaireResponseFormData) => Promise<any>;
     readOnly?: boolean;
-    validation?: Pick<UseFormProps<FormItems>, 'resolver' | 'mode'>;
     widgetsByQuestionType?: QuestionItemComponentMapping;
     widgetsByQuestionItemControl?: ItemControlQuestionItemComponentMapping;
     widgetsByGroupQuestionItemControl?: ItemControlGroupItemComponentMapping;
@@ -54,11 +56,17 @@ export interface BaseQuestionnaireResponseFormProps {
 }
 
 export function BaseQuestionnaireResponseForm(props: BaseQuestionnaireResponseFormProps) {
-    const { formData, readOnly, validation, onSubmit, onEdit, ItemWrapper, GroupWrapper, FormWrapper } = props;
+    const { formData, readOnly, onSubmit, onEdit, ItemWrapper, GroupWrapper, FormWrapper } = props;
+
+    const schema: yup.AnyObjectSchema = useMemo(
+        () => questionnaireToValidationSchema(formData.context.questionnaire),
+        [formData.context.questionnaire],
+    );
 
     const form = useForm<FormItems>({
         defaultValues: formData.formValues,
-        ...validation,
+        resolver: yupResolver(schema),
+        mode: 'onChange',
     });
 
     useEffect(() => {
