@@ -19,7 +19,7 @@ import {
     QuestionItemProps,
     QuestionnaireResponseFormData,
     QuestionnaireResponseFormProvider,
-} from '../../../vendor/sdc-qrf';
+} from 'sdc-qrf';
 import { GroupComponent } from './GroupComponent';
 
 import { questionnaireToValidationSchema } from './utils';
@@ -147,6 +147,7 @@ export function BaseQuestionnaireResponseForm(props: BaseQuestionnaireResponseFo
                     Control={props.groupItemComponent}
                     GroupWrapper={GroupWrapper}
                     questionItemComponents={questionItemComponents}
+                    itemControlQuestionItemComponents={itemControlQuestionItemComponents}
                 />
             ),
         [GroupWrapper, props.groupItemComponent],

@@ -1,6 +1,6 @@
 import { GroupWrapperProps } from '.';
 import { QuestionnaireItem } from '../../../contrib/aidbox';
-import { GroupItemProps, GroupItemComponent, QuestionItemComponent } from '../../../vendor/sdc-qrf';
+import { GroupItemProps, GroupItemComponent, QuestionItemComponent } from 'sdc-qrf';
 import { ComponentType, FunctionComponent, PropsWithChildren, useCallback, useState } from 'react';
 
 type GroupItemComponentExtended = FunctionComponent<PropsWithChildren<GroupItemProps> & { addItem: () => void }>;
@@ -9,12 +9,13 @@ interface Props extends PropsWithChildren {
     itemProps: GroupItemProps;
     Control: GroupItemComponent | undefined;
     questionItemComponents: { [x: string]: QuestionItemComponent };
+    itemControlQuestionItemComponents: { [x: string]: QuestionItemComponent };
     GroupWrapper?: ComponentType<GroupWrapperProps>;
     addItem?: () => void;
 }
 
 export function GroupComponent(props: Props) {
-    const { itemProps, Control, GroupWrapper, questionItemComponents } = props;
+    const { itemProps, Control, GroupWrapper, questionItemComponents, itemControlQuestionItemComponents } = props;
     if (!Control) return null;
 
     const GroupWidgetComponent = Control as GroupItemComponentExtended;
@@ -32,7 +33,11 @@ export function GroupComponent(props: Props) {
             ? [...parentPath, linkId, 'items', String(index)]
             : [...parentPath, linkId, 'items'];
 
-        const Component = questionItemComponents[i.type];
+        const code = i.itemControl?.coding?.[0].code;
+        const Component =
+            code && code in itemControlQuestionItemComponents
+                ? itemControlQuestionItemComponents[code]
+                : questionItemComponents[i.type];
 
         if (i.type === 'group') {
             return (
@@ -61,7 +66,9 @@ export function GroupComponent(props: Props) {
 
     const renderGroupContent = () => (
         <GroupWidgetComponent {...itemProps} addItem={addItem}>
-            {items.flatMap((_, index) => questionItem.item?.map((i) => renderQuestionItem(i, index)) || [])}
+            {items.flatMap(
+                (_, index) => questionItem.item?.map((i: QuestionnaireItem) => renderQuestionItem(i, index)) || [],
+            )}
         </GroupWidgetComponent>
     );
 
