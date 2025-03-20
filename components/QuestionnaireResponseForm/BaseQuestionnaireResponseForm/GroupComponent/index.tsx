@@ -1,7 +1,8 @@
-import { GroupWrapperProps } from '.';
-import { QuestionnaireItem } from '../../../contrib/aidbox';
+import { GroupWrapperProps } from '../';
+import { QuestionnaireItem } from '../../../../contrib/aidbox';
 import { GroupItemProps, GroupItemComponent, QuestionItemComponent } from 'sdc-qrf';
 import { ComponentType, FunctionComponent, PropsWithChildren, useCallback, useState } from 'react';
+import { getInitialItemCount } from './utils';
 
 type GroupItemComponentExtended = FunctionComponent<PropsWithChildren<GroupItemProps> & { addItem: () => void }>;
 
@@ -22,10 +23,14 @@ export function GroupComponent(props: Props) {
     const { questionItem, context, parentPath } = itemProps;
     const { repeats, linkId } = questionItem;
 
-    const [items, setItems] = useState([{}]);
+    const getInitialCount = useCallback(
+        () => getInitialItemCount(context[0].resource.item, parentPath, linkId),
+        [context, parentPath, linkId],
+    );
 
+    const [itemCount, setItemCount] = useState(getInitialCount() || 1);
     const addItem = useCallback(() => {
-        setItems((prevItems) => [...prevItems, {}]);
+        setItemCount((prevCount) => prevCount + 1);
     }, []);
 
     const renderQuestionItem = (i: QuestionnaireItem, index: number) => {
@@ -66,7 +71,7 @@ export function GroupComponent(props: Props) {
 
     const renderGroupContent = () => (
         <GroupWidgetComponent {...itemProps} addItem={addItem}>
-            {items.flatMap(
+            {Array.from({ length: itemCount }).flatMap(
                 (_, index) => questionItem.item?.map((i: QuestionnaireItem) => renderQuestionItem(i, index)) || [],
             )}
         </GroupWidgetComponent>
