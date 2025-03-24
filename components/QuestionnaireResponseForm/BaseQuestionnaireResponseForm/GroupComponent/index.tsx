@@ -24,7 +24,7 @@ export function GroupComponent(props: Props) {
     const { repeats, linkId } = questionItem;
 
     const [itemCount, setItemCount] = useState(
-        () => getInitialItemCount(context[0].resource.item, parentPath, linkId) || 1,
+        () => getInitialItemCount(context[0].resource, parentPath, linkId) || 1,
     );
     const addItem = useCallback(() => {
         setItemCount((prevCount) => prevCount + 1);
