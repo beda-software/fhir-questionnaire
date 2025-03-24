@@ -1,9 +1,9 @@
 import { QuestionnaireResponse } from '../../../../contrib/aidbox';
-import fhirpath from 'fhirpath';
+import { evaluate } from 'fhirpath';
 
 export function getInitialItemCount(resource: QuestionnaireResponse, parentPath: string[], linkId: string) {
     const expression = buildFhirPathExpression(parentPath, linkId);
-    const items = fhirpath.evaluate(resource, expression) as any[];
+    const items = evaluate(resource, expression) as any[];
     return items.length;
 }
 
