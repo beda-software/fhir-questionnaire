@@ -9,4 +9,5 @@ jobs:
               with:
                   node-version: 18
             - run: yarn install
+            - run: yarn add typescript -D
             - run: yarn test
