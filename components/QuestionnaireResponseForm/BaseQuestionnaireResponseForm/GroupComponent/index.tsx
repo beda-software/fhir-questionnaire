@@ -2,7 +2,8 @@ import { GroupWrapperProps } from '../';
 import { QuestionnaireItem } from '../../../../contrib/aidbox';
 import { GroupItemProps, GroupItemComponent, QuestionItemComponent } from 'sdc-qrf';
 import { ComponentType, FunctionComponent, PropsWithChildren, useCallback, useState } from 'react';
-import { getInitialItemCount } from './utils';
+import { useFormContext } from 'react-hook-form';
+import _ from 'lodash';
 
 type GroupItemComponentExtended = FunctionComponent<PropsWithChildren<GroupItemProps> & { addItem: () => void }>;
 
@@ -22,10 +23,12 @@ export function GroupComponent(props: Props) {
     const GroupWidgetComponent = Control as GroupItemComponentExtended;
     const { questionItem, context, parentPath } = itemProps;
     const { repeats, linkId } = questionItem;
+    const fieldName = [...parentPath, linkId];
 
-    const [itemCount, setItemCount] = useState(
-        () => getInitialItemCount(context[0].resource, parentPath, linkId) || 1,
-    );
+    const { getValues } = useFormContext();
+    const value = _.get(getValues(), fieldName);
+
+    const [itemCount, setItemCount] = useState<number>(() => value?.items?.length || 1);
     const addItem = useCallback(() => {
         setItemCount((prevCount) => prevCount + 1);
     }, []);
