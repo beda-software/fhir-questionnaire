@@ -1,11 +1,16 @@
 import { GroupWrapperProps } from '../';
 import { QuestionnaireItem } from '../../../../contrib/aidbox';
 import { GroupItemProps, GroupItemComponent, QuestionItemComponent } from 'sdc-qrf';
-import { ComponentType, FunctionComponent, PropsWithChildren, useCallback, useState } from 'react';
+import { ComponentType, FunctionComponent, PropsWithChildren, useCallback } from 'react';
 import { useFormContext } from 'react-hook-form';
 import _ from 'lodash';
 
-type GroupItemComponentExtended = FunctionComponent<PropsWithChildren<GroupItemProps> & { addItem: () => void }>;
+type GroupItemComponentExtended = FunctionComponent<
+    PropsWithChildren<GroupItemProps> & {
+        addItem?: () => void;
+        removeItem?: (index: number) => void;
+    }
+>;
 
 interface Props extends PropsWithChildren {
     itemProps: GroupItemProps;
@@ -13,11 +18,23 @@ interface Props extends PropsWithChildren {
     questionItemComponents: { [x: string]: QuestionItemComponent };
     itemControlQuestionItemComponents: { [x: string]: QuestionItemComponent };
     GroupWrapper?: ComponentType<GroupWrapperProps>;
-    addItem?: () => void;
+    buildValue?: (existingItems: QuestionnaireItem[]) => QuestionnaireItem[];
+}
+
+function defaultBuildValue(existingItems: QuestionnaireItem[]): QuestionnaireItem[] {
+    return [...existingItems, {} as QuestionnaireItem];
 }
 
 export function GroupComponent(props: Props) {
-    const { itemProps, Control, GroupWrapper, questionItemComponents, itemControlQuestionItemComponents } = props;
+    const {
+        itemProps,
+        Control,
+        GroupWrapper,
+        questionItemComponents,
+        itemControlQuestionItemComponents,
+        buildValue = defaultBuildValue,
+    } = props;
+
     if (!Control) return null;
 
     const GroupWidgetComponent = Control as GroupItemComponentExtended;
@@ -25,13 +42,27 @@ export function GroupComponent(props: Props) {
     const { repeats, linkId } = questionItem;
     const fieldName = [...parentPath, linkId];
 
-    const { getValues } = useFormContext();
+    const { getValues, setValue } = useFormContext();
     const value = _.get(getValues(), fieldName);
 
-    const [itemCount, setItemCount] = useState<number>(() => value?.items?.length || 1);
+    const items: QuestionnaireItem[] = value?.items.length ? value.items : [{}];
+
+    const updateItems = (updatedItems: QuestionnaireItem[]) => {
+        setValue([...fieldName, 'items'].join('.'), updatedItems);
+    };
+
     const addItem = useCallback(() => {
-        setItemCount((prevCount) => prevCount + 1);
-    }, []);
+        const updatedItems = buildValue(items);
+        updateItems(updatedItems);
+    }, [items, buildValue]);
+
+    const removeItem = useCallback(
+        (index: number) => {
+            const updatedItems = items.filter((_, i: number) => i !== index);
+            updateItems(updatedItems);
+        },
+        [items],
+    );
 
     const renderQuestionItem = (i: QuestionnaireItem, index: number) => {
         const updatedParentPath = repeats
@@ -70,9 +101,9 @@ export function GroupComponent(props: Props) {
     };
 
     const renderGroupContent = () => (
-        <GroupWidgetComponent {...itemProps} addItem={addItem}>
-            {Array.from({ length: itemCount }).flatMap(
-                (_, index) => questionItem.item?.map((i: QuestionnaireItem) => renderQuestionItem(i, index)) || [],
+        <GroupWidgetComponent {...itemProps} addItem={addItem} removeItem={removeItem}>
+            {items.map((_, index: number) =>
+                questionItem.item?.map((i: QuestionnaireItem) => renderQuestionItem(i, index)),
             )}
         </GroupWidgetComponent>
     );
