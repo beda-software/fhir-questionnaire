@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import _ from 'lodash';
 import { useController, useFormContext } from 'react-hook-form';
 
-import { useQuestionnaireResponseFormContext } from '../../../vendor/sdc-qrf';
+import { useQuestionnaireResponseFormContext } from 'sdc-qrf';
 import { QuestionnaireItem } from '../../../contrib/aidbox';
 
 export function useFieldController<T = any>(fieldName: Array<string | number>, questionItem: QuestionnaireItem) {

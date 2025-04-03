@@ -20,9 +20,9 @@ import {
     calcInitialContext,
     removeDisabledAnswers,
     QuestionnaireResponseFormData,
-} from '../../vendor/sdc-qrf';
+} from 'sdc-qrf';
 
-export type { QuestionnaireResponseFormData } from '../../vendor/sdc-qrf';
+export type { QuestionnaireResponseFormData } from 'sdc-qrf';
 
 export type QuestionnaireResponseFormSaveResponse = {
     questionnaireResponse: FHIRQuestionnaireResponse;

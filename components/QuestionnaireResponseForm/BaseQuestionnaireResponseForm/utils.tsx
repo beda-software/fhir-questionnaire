@@ -7,7 +7,7 @@ import {
     QuestionnaireItemAnswerOption,
     QuestionnaireItemEnableWhenAnswer,
 } from '../../../contrib/aidbox';
-import { getChecker } from '../../../vendor/sdc-qrf';
+import { getChecker } from 'sdc-qrf';
 import { ControllerFieldState, ControllerRenderProps, FieldValues } from 'react-hook-form';
 
 export function questionnaireToValidationSchema(questionnaire: Questionnaire) {
