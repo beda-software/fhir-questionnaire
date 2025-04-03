@@ -1,25 +1,25 @@
 import { GroupWrapperProps } from '../';
 import { QuestionnaireItem } from '../../../../contrib/aidbox';
-import { GroupItemProps, GroupItemComponent, QuestionItemComponent } from 'sdc-qrf';
-import { ComponentType, FunctionComponent, PropsWithChildren, useCallback } from 'react';
+import { GroupItemProps as GroupItemPropsBase, QuestionItemComponent } from 'sdc-qrf';
+import { ComponentType, PropsWithChildren, useCallback } from 'react';
 import { useFormContext } from 'react-hook-form';
 import _ from 'lodash';
 
-type GroupItemComponentExtended = FunctionComponent<
-    PropsWithChildren<GroupItemProps> & {
+export type GroupItemProps = PropsWithChildren<GroupItemPropsBase> & {
         addItem?: () => void;
         removeItem?: (index: number) => void;
     }
->;
 
-interface Props extends PropsWithChildren {
+export type GroupItemComponent = ComponentType<GroupItemProps>;
+
+type Props = PropsWithChildren<{
     itemProps: GroupItemProps;
-    Control: GroupItemComponent | undefined;
+    Control: GroupItemComponent;
     questionItemComponents: { [x: string]: QuestionItemComponent };
     itemControlQuestionItemComponents: { [x: string]: QuestionItemComponent };
     GroupWrapper?: ComponentType<GroupWrapperProps>;
     buildValue?: (existingItems: QuestionnaireItem[]) => QuestionnaireItem[];
-}
+}>
 
 function defaultBuildValue(existingItems: QuestionnaireItem[]): QuestionnaireItem[] {
     return [...existingItems, {} as QuestionnaireItem];
@@ -37,7 +37,7 @@ export function GroupComponent(props: Props) {
 
     if (!Control) return null;
 
-    const GroupWidgetComponent = Control as GroupItemComponentExtended;
+    const GroupWidgetComponent = Control;
     const { questionItem, context, parentPath } = itemProps;
     const { repeats, linkId } = questionItem;
     const fieldName = [...parentPath, linkId];

@@ -9,8 +9,6 @@ import {
     calcInitialContext,
     FormItems,
     getEnabledQuestions,
-    GroupItemComponent,
-    GroupItemProps,
     ItemControlGroupItemComponentMapping,
     ItemControlQuestionItemComponentMapping,
     QuestionItem,
@@ -20,7 +18,7 @@ import {
     QuestionnaireResponseFormData,
     QuestionnaireResponseFormProvider,
 } from 'sdc-qrf';
-import { GroupComponent } from './GroupComponent';
+import { GroupComponent, GroupItemComponent, GroupItemProps } from './GroupComponent';
 
 import { questionnaireToValidationSchema } from './utils';
 export type { QuestionItemProps };
@@ -48,7 +46,7 @@ export interface BaseQuestionnaireResponseFormProps {
     widgetsByQuestionType?: QuestionItemComponentMapping;
     widgetsByQuestionItemControl?: ItemControlQuestionItemComponentMapping;
     widgetsByGroupQuestionItemControl?: ItemControlGroupItemComponentMapping;
-    groupItemComponent?: GroupItemComponent;
+    groupItemComponent: GroupItemComponent;
 
     ItemWrapper?: ComponentType<ItemWrapperProps>;
     GroupWrapper?: ComponentType<GroupWrapperProps>;
