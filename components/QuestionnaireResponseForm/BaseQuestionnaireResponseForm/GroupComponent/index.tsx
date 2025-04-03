@@ -1,6 +1,6 @@
 import { GroupWrapperProps } from '../';
 import { QuestionnaireItem } from '../../../../contrib/aidbox';
-import { GroupItemProps as GroupItemPropsBase, QuestionItemComponent } from 'sdc-qrf';
+import { GroupItemProps as GroupItemPropsBase, QuestionItemComponent, FormItems } from 'sdc-qrf';
 import { ComponentType, PropsWithChildren, useCallback } from 'react';
 import { useFormContext } from 'react-hook-form';
 import _ from 'lodash';
@@ -18,11 +18,11 @@ type Props = PropsWithChildren<{
     questionItemComponents: { [x: string]: QuestionItemComponent };
     itemControlQuestionItemComponents: { [x: string]: QuestionItemComponent };
     GroupWrapper?: ComponentType<GroupWrapperProps>;
-    buildValue?: (existingItems: QuestionnaireItem[]) => QuestionnaireItem[];
+    buildValue?: (existingItems: FormItems[]) => FormItems[];
 }>
 
-function defaultBuildValue(existingItems: QuestionnaireItem[]): QuestionnaireItem[] {
-    return [...existingItems, {} as QuestionnaireItem];
+function defaultBuildValue(existingItems: FormItems[]): FormItems[] {
+    return [...existingItems, {}];
 }
 
 export function GroupComponent(props: Props) {
@@ -45,9 +45,9 @@ export function GroupComponent(props: Props) {
     const { getValues, setValue } = useFormContext();
     const value = _.get(getValues(), fieldName);
 
-    const items: QuestionnaireItem[] = value?.items.length ? value.items : [{}];
+    const items: FormItems[] = value?.items.length ? value.items : [{}];
 
-    const updateItems = (updatedItems: QuestionnaireItem[]) => {
+    const updateItems = (updatedItems: FormItems[]) => {
         setValue([...fieldName, 'items'].join('.'), updatedItems);
     };
 
