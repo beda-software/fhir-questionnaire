@@ -1,6 +1,6 @@
 {
   "name": "@beda.software/fhir-questionnaire",
-  "version": "1.0.0",
+  "version": "2.0.0-alpha.0",
   "main": "index.ts",
   "peerDependencies": {
     "@types/react": "*",
@@ -9,7 +9,7 @@
   },
   "scripts": {
     "test": "jest"
-},
+  },
   "dependencies": {
     "@beda.software/fhir-react": "^1.8.6",
     "@beda.software/remote-data": "^1.1.3",
