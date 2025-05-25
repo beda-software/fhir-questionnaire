@@ -1,0 +1,31 @@
+{
+    "compilerOptions": {
+        "target": "es6",
+        "lib": ["DOM", "ES5", "DOM.Iterable", "ES2019"],
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "importHelpers": true,
+        "useDefineForClassFields": true,
+        "isolatedModules": true,
+        "strict": true,
+        "jsx": "react-jsx",
+
+        "allowJs": true,
+        "declaration": true,
+        "declarationMap": true,
+        "sourceMap": true,
+        "noEmitOnError": true,
+
+        "skipLibCheck": true,
+
+        "outDir": "dist",
+
+        "baseUrl": "./src",
+        "noUncheckedIndexedAccess": true,
+        "noUnusedLocals": true,
+        "resolveJsonModule": true,
+        "esModuleInterop": true
+    },
+    "include": ["components/**/*"],
+    "exclude": ["src/setupTests.ts", "src/**/*.test.ts", "src/**/*.test.tsx"]
+}
