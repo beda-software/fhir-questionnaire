@@ -14301,7 +14301,7 @@ export interface Questionnaire {
     lastReviewDate?: date;
     /** NOTE: from extension http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-launchContext */
     launchContext?: QuestionnaireLaunchContext[];
-    /** NOTE: from extension http://beda.software/fhir-extensions/questionnaire-mapper */
+    /** NOTE: from extension https://emr.beda.software/StructureDefinition/questionnaire-mapper */
     /** List of mapping resources that must be executed on extract */
     mapping?: Array<InternalReference<Mapping>>;
     /** Extensions that cannot be ignored */
