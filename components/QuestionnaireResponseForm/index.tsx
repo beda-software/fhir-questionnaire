@@ -65,7 +65,6 @@ const TIMEOUT_TO_SAVE_DRAFT_RESPONSE_AFTER_MS = 1000;
 export function useQuestionnaireResponseForm(props: Props) {
     // TODO find what cause rerender and fix it
     // remove this temporary hack
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     const memoizedProps = useMemo(() => props, [JSON.stringify(props)]);
 
     const { response, handleSave, handleUpdate } = useQuestionnaireResponseFormData(memoizedProps);

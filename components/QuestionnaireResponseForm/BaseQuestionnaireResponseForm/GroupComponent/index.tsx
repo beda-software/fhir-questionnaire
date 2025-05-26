@@ -5,9 +5,9 @@ import { useFormContext } from 'react-hook-form';
 import _ from 'lodash';
 
 export type GroupItemProps = PropsWithChildren<GroupItemPropsBase> & {
-        addItem?: () => void;
-        removeItem?: (index: number) => void;
-    }
+    addItem?: () => void;
+    removeItem?: (index: number) => void;
+};
 
 export type GroupItemComponent = ComponentType<GroupItemProps>;
 
@@ -18,7 +18,7 @@ type Props = PropsWithChildren<{
     itemControlQuestionItemComponents: { [x: string]: QuestionItemComponent };
     GroupWrapper?: ComponentType<GroupWrapperProps>;
     buildValue?: (existingItems: FormItems[]) => FormItems[];
-}>
+}>;
 
 function defaultBuildValue(existingItems: FormItems[]): FormItems[] {
     return [...existingItems, {}];
@@ -101,9 +101,7 @@ export function GroupComponent(props: Props) {
 
     const renderGroupContent = () => (
         <GroupWidgetComponent {...itemProps} addItem={addItem} removeItem={removeItem}>
-            {items.map((_, index: number) =>
-                questionItem.item?.map((i) => renderQuestionItem(i, index)),
-            )}
+            {items.map((_, index: number) => questionItem.item?.map((i) => renderQuestionItem(i, index)))}
         </GroupWidgetComponent>
     );
 
