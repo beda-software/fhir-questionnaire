@@ -1,6 +1,6 @@
 {
   "name": "@beda.software/fhir-questionnaire",
-  "version": "1.0.0",
+  "version": "2.0.0-alpha.0",
   "main": "index.ts",
   "peerDependencies": {
     "@types/react": "*",
@@ -22,7 +22,7 @@
     "moment": "^2.30.1",
     "query-string": "^7.1.1",
     "react-hook-form": "^7.49.3",
-    "sdc-qrf": "1.0.0-alpha.2-fhir.12",
+    "sdc-qrf": "1.0.0-beta.1",
     "yup": "^1.2.0"
   },
   "devDependencies": {
