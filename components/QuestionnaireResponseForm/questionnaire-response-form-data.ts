@@ -1,17 +1,8 @@
 import { formatFHIRDateTime, initServices, useService } from '@beda.software/fhir-react';
 import { RemoteDataResult, isFailure, isSuccess, mapSuccess, success } from '@beda.software/remote-data';
-import {
-    QuestionnaireResponse as FHIRQuestionnaireResponse,
-    Parameters,
-    ParametersParameter,
-    Questionnaire as FHIRQuestionnaire,
-} from 'fhir/r4b';
+import { Parameters, ParametersParameter, Questionnaire, QuestionnaireResponse } from 'fhir/r4b';
 import moment from 'moment';
 
-import {
-    QuestionnaireResponse as FCEQuestionnaireResponse,
-    ParametersParameter as FCEParametersParameter,
-} from '../../contrib/aidbox';
 import {
     toFirstClassExtension,
     fromFirstClassExtension,
@@ -25,13 +16,13 @@ import {
 export type { QuestionnaireResponseFormData } from 'sdc-qrf';
 
 export type QuestionnaireResponseFormSaveResponse = {
-    questionnaireResponse: FHIRQuestionnaireResponse;
+    questionnaireResponse: QuestionnaireResponse;
     extracted: boolean;
 };
 
 export interface QuestionnaireResponseFormProps {
     questionnaireLoader: QuestionnaireLoader;
-    initialQuestionnaireResponse?: Partial<FHIRQuestionnaireResponse>;
+    initialQuestionnaireResponse?: Partial<QuestionnaireResponse>;
     launchContextParameters?: ParametersParameter[];
     serviceProvider: ReturnType<typeof initServices>;
     autosave?: boolean;
@@ -39,7 +30,7 @@ export interface QuestionnaireResponseFormProps {
 
 interface QuestionnaireServiceLoader {
     type: 'service';
-    questionnaireService: () => Promise<RemoteDataResult<FHIRQuestionnaire>>;
+    questionnaireService: () => Promise<RemoteDataResult<Questionnaire>>;
 }
 
 interface QuestionnaireIdLoader {
@@ -78,34 +69,32 @@ export function questionnaireIdWOAssembleLoader(questionnaireId: string): Questi
 }
 
 export function toQuestionnaireResponseFormData(
-    questionnaire: FHIRQuestionnaire,
-    questionnaireResponse: FHIRQuestionnaireResponse,
+    questionnaire: Questionnaire,
+    questionnaireResponse: QuestionnaireResponse,
     launchContextParameters: ParametersParameter[] = [],
 ): QuestionnaireResponseFormData {
     return {
         context: {
             // TODO: we can't change type inside qrf utils
-            questionnaire: toFirstClassExtension(questionnaire),
-            questionnaireResponse: toFirstClassExtension(questionnaireResponse),
+            fceQuestionnaire: toFirstClassExtension(questionnaire),
+            questionnaire,
+            questionnaireResponse: questionnaireResponse,
             launchContextParameters: launchContextParameters || [],
         },
-        formValues: mapResponseToForm(
-            toFirstClassExtension(questionnaireResponse),
-            toFirstClassExtension(questionnaire),
-        ),
+        formValues: mapResponseToForm(questionnaireResponse, questionnaire),
     };
 }
 
 export function fromQuestionnaireResponseFormData(
     formData: QuestionnaireResponseFormData,
-    responseSubmissionStatus?: Pick<FCEQuestionnaireResponse, 'status' | 'authored'>,
+    responseSubmissionStatus?: Pick<QuestionnaireResponse, 'status' | 'authored'>,
 ) {
     const { formValues, context } = formData;
     const { questionnaireResponse, questionnaire } = context;
     const itemContext = calcInitialContext(formData.context, formValues);
     const enabledQuestionsFormValues = removeDisabledAnswers(questionnaire, formValues, itemContext);
 
-    const finalFCEQuestionnaireResponse: FCEQuestionnaireResponse = {
+    const finalFHIRQuestionnaireResponse: QuestionnaireResponse = {
         ...questionnaireResponse,
         ...mapFormToResponse(enabledQuestionsFormValues, questionnaire),
         ...responseSubmissionStatus,
@@ -113,7 +102,7 @@ export function fromQuestionnaireResponseFormData(
 
     return {
         questionnaire: fromFirstClassExtension(questionnaire),
-        questionnaireResponse: fromFirstClassExtension(finalFCEQuestionnaireResponse),
+        questionnaireResponse: finalFHIRQuestionnaireResponse,
         launchContextParameters: formData.context.launchContextParameters,
     };
 }
@@ -141,13 +130,13 @@ async function loadQuestionnaireResponseFormData(props: QuestionnaireResponseFor
 
     const fetchQuestionnaire = () => {
         if (questionnaireLoader.type === 'raw-id') {
-            return serviceProvider.service<FHIRQuestionnaire>({
+            return serviceProvider.service<Questionnaire>({
                 method: 'GET',
                 url: `/Questionnaire/${questionnaireLoader.questionnaireId}`,
             });
         }
         if (questionnaireLoader.type === 'id') {
-            return serviceProvider.service<FHIRQuestionnaire>({
+            return serviceProvider.service<Questionnaire>({
                 method: 'GET',
                 url: `/Questionnaire/${questionnaireLoader.questionnaireId}/$assemble`,
             });
@@ -170,17 +159,17 @@ async function loadQuestionnaireResponseFormData(props: QuestionnaireResponseFor
         ],
     };
 
-    let populateRemoteData: RemoteDataResult<FHIRQuestionnaireResponse>;
+    let populateRemoteData: RemoteDataResult<QuestionnaireResponse>;
     if (initialQuestionnaireResponse?.id) {
-        populateRemoteData = success(initialQuestionnaireResponse as FHIRQuestionnaireResponse);
+        populateRemoteData = success(initialQuestionnaireResponse as QuestionnaireResponse);
     } else {
         populateRemoteData = mapSuccess(
-            await serviceProvider.service<FHIRQuestionnaireResponse>({
+            await serviceProvider.service<QuestionnaireResponse>({
                 method: 'POST',
                 url: '/Questionnaire/$populate',
                 data: params,
             }),
-            (draft): FHIRQuestionnaireResponse => ({
+            (draft): QuestionnaireResponse => ({
                 ...initialQuestionnaireResponse,
                 ...draft,
             }),
@@ -262,11 +251,7 @@ export function useQuestionnaireResponseFormData(props: QuestionnaireResponseFor
         return mapSuccess(r, ({ context, formValues }) => {
             const result: QuestionnaireResponseFormData = {
                 formValues,
-                context: {
-                    launchContextParameters: context.launchContextParameters as unknown as FCEParametersParameter[],
-                    questionnaire: context.questionnaire,
-                    questionnaireResponse: context.questionnaireResponse,
-                },
+                context,
             };
             return result;
         });
@@ -275,7 +260,9 @@ export function useQuestionnaireResponseFormData(props: QuestionnaireResponseFor
     const handleUpdate = async (
         qrFormData: QuestionnaireResponseFormData,
     ): Promise<RemoteDataResult<QuestionnaireResponseFormSaveResponse>> => {
-        const draft = fromQuestionnaireResponseFormData(qrFormData, { status: 'in-progress' });
+        const draft = fromQuestionnaireResponseFormData(qrFormData, {
+            status: 'in-progress',
+        });
         const responseRemoteData = await props.serviceProvider.saveFHIRResource(draft.questionnaireResponse);
         return mapSuccess(responseRemoteData, (questionnaireResponse) => ({
             questionnaireResponse,

@@ -1,6 +1,5 @@
 import { GroupWrapperProps } from '../';
-import { QuestionnaireItem } from '../../../../contrib/aidbox';
-import { GroupItemProps as GroupItemPropsBase, QuestionItemComponent, FormItems } from 'sdc-qrf';
+import { GroupItemProps as GroupItemPropsBase, QuestionItemComponent, FormItems, FCEQuestionnaireItem } from 'sdc-qrf';
 import { ComponentType, PropsWithChildren, useCallback } from 'react';
 import { useFormContext } from 'react-hook-form';
 import _ from 'lodash';
@@ -64,12 +63,12 @@ export function GroupComponent(props: Props) {
         [items],
     );
 
-    const renderQuestionItem = (i: QuestionnaireItem, index: number) => {
+    const renderQuestionItem = (i: FCEQuestionnaireItem, index: number) => {
         const updatedParentPath = repeats
             ? [...parentPath, linkId, 'items', String(index)]
             : [...parentPath, linkId, 'items'];
 
-        const code = i.itemControl?.coding?.[0].code;
+        const code = i.itemControl?.coding?.[0]?.code;
         const Component =
             code && code in itemControlQuestionItemComponents
                 ? itemControlQuestionItemComponents[code]
@@ -93,7 +92,7 @@ export function GroupComponent(props: Props) {
         return (
             <Component
                 key={`${i.linkId}-${index}`}
-                context={context[0]}
+                context={context[0]!}
                 parentPath={updatedParentPath}
                 questionItem={i}
             />
@@ -102,9 +101,7 @@ export function GroupComponent(props: Props) {
 
     const renderGroupContent = () => (
         <GroupWidgetComponent {...itemProps} addItem={addItem} removeItem={removeItem}>
-            {items.map((_, index: number) =>
-                questionItem.item?.map((i: QuestionnaireItem) => renderQuestionItem(i, index)),
-            )}
+            {items.map((_, index: number) => questionItem.item?.map((i) => renderQuestionItem(i, index)))}
         </GroupWidgetComponent>
     );
 

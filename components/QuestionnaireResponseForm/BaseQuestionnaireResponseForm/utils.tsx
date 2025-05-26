@@ -1,20 +1,14 @@
 import * as yup from 'yup';
 
-import {
-    Questionnaire,
-    QuestionnaireItem,
-    QuestionnaireItemEnableWhen,
-    QuestionnaireItemAnswerOption,
-    QuestionnaireItemEnableWhenAnswer,
-} from '../../../contrib/aidbox';
-import { getChecker } from 'sdc-qrf';
+import { AnswerValue, FCEQuestionnaire, FCEQuestionnaireItem, getChecker, toAnswerValue } from 'sdc-qrf';
 import { ControllerFieldState, ControllerRenderProps, FieldValues } from 'react-hook-form';
+import { QuestionnaireItemAnswerOption, QuestionnaireItemEnableWhen } from 'fhir/r4b';
 
-export function questionnaireToValidationSchema(questionnaire: Questionnaire) {
+export function questionnaireToValidationSchema(questionnaire: FCEQuestionnaire) {
     return questionnaireItemsToValidationSchema(questionnaire.item ?? []);
 }
 
-export function questionnaireItemsToValidationSchema(questionnaireItems: QuestionnaireItem[]) {
+export function questionnaireItemsToValidationSchema(questionnaireItems: FCEQuestionnaireItem[]) {
     const validationSchema: Record<string, yup.AnySchema> = {};
     if (questionnaireItems.length === 0) return yup.object(validationSchema) as yup.AnyObjectSchema;
     questionnaireItems.forEach((item) => {
@@ -82,7 +76,8 @@ interface GetEnableWhenItemSchemaProps extends GetQuestionItemEnableWhenSchemaPr
 function getEnableWhenItemsSchema(props: GetEnableWhenItemSchemaProps): yup.AnySchema {
     const { enableWhenItems, enableBehavior, currentIndex, schema, prevConditionResults } = props;
 
-    const { question, operator, answer } = enableWhenItems[currentIndex]!;
+    const { question, operator, ...enableWhenItem } = enableWhenItems[currentIndex]!;
+    const answer = toAnswerValue(enableWhenItem, 'answer')!;
 
     const isLastItem = currentIndex === enableWhenItems.length - 1;
 
@@ -123,8 +118,8 @@ function getEnableWhenItemsSchema(props: GetEnableWhenItemSchemaProps): yup.AnyS
 
 interface IsEnableWhenItemSucceedProps {
     answerOptionArray: QuestionnaireItemAnswerOption[] | undefined;
-    answer: QuestionnaireItemEnableWhenAnswer | undefined;
-    operator: string;
+    answer: AnswerValue | undefined;
+    operator: QuestionnaireItemEnableWhen['operator'];
 }
 function isEnableWhenItemSucceed(props: IsEnableWhenItemSucceedProps): boolean {
     const { answerOptionArray, answer, operator } = props;
@@ -142,13 +137,13 @@ function isEnableWhenItemSucceed(props: IsEnableWhenItemSucceedProps): boolean {
     return checker(answerOptionsWithValues, answer);
 }
 
-function getAnswerOptionsValues(answerOptionArray: QuestionnaireItemAnswerOption[]): Array<{ value: any }> {
-    return answerOptionArray.reduce<Array<{ value: any }>>((acc, option) => {
-        if (option?.value === undefined) {
+function getAnswerOptionsValues(answerOptionArray: QuestionnaireItemAnswerOption[]): Array<AnswerValue> {
+    return answerOptionArray.reduce<Array<AnswerValue>>((acc, option) => {
+        if (toAnswerValue(option, 'value') === undefined) {
             return acc;
         }
 
-        return [...acc, { value: option.value }];
+        return [...acc, toAnswerValue(option, 'value')!];
     }, []);
 }
 

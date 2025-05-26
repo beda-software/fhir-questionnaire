@@ -2,34 +2,35 @@ import { useCallback } from 'react';
 import _ from 'lodash';
 import { useController, useFormContext } from 'react-hook-form';
 
-import { useQuestionnaireResponseFormContext } from 'sdc-qrf';
-import { QuestionnaireItem } from '../../../contrib/aidbox';
+import { FCEQuestionnaireItem, FormAnswerItems, useQuestionnaireResponseFormContext } from 'sdc-qrf';
 
-export function useFieldController<T = any>(fieldName: Array<string | number>, questionItem: QuestionnaireItem) {
+export function useFieldController<T = unknown>(fieldName: Array<string | number>, questionItem: FCEQuestionnaireItem) {
     const qrfContext = useQuestionnaireResponseFormContext();
     const { readOnly, repeats } = questionItem;
     const { control } = useFormContext();
 
-    const { field, fieldState } = useController({
+    // @ts-expect-error because T might be array
+    const { field, fieldState } = useController<T>({
         control: control,
         name: fieldName.join('.'),
         ...(repeats ? { defaultValue: [] } : {}),
     });
 
     const onMultiChange = useCallback(
-        (option: any) => {
+        (option: FormAnswerItems) => {
+            // NOTE: it's used online in inline-choice
             if (repeats) {
-                const arrayValue = (field.value ?? []) as any[];
-                const valueIndex = arrayValue.findIndex((v) => _.isEqual(v?.value, option.value));
+                const formAnswers = (field.value ?? []) as FormAnswerItems[];
+                const valueIndex = formAnswers.findIndex((v) => _.isEqual(v.value, option.value));
 
                 if (valueIndex === -1) {
-                    field.onChange([...arrayValue, option]);
+                    field.onChange([...formAnswers, option]);
                 } else {
-                    arrayValue.splice(valueIndex, 1);
-                    field.onChange(arrayValue);
+                    formAnswers.splice(valueIndex, 1);
+                    field.onChange(formAnswers);
                 }
             } else {
-                field.onChange(option);
+                field.onChange([option]);
             }
         },
         [repeats, field],
