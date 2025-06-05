@@ -21,6 +21,8 @@ import {
 import { GroupComponent, GroupItemComponent, GroupItemProps } from './GroupComponent';
 
 import { questionnaireToValidationSchema } from './utils';
+import { ExtensionIdentifier } from 'sdc-qrf/dist/converter/extensions';
+
 export type { QuestionItemProps };
 
 export interface FormWrapperProps {
@@ -83,6 +85,14 @@ export function BaseQuestionnaireResponseForm(props: BaseQuestionnaireResponseFo
                 .map(([key, Control]) => [
                     key,
                     (itemProps: QuestionItemProps) => {
+                        if (
+                            itemProps.questionItem.extension?.find(
+                                (ext) => ext.url === ExtensionIdentifier.Hidden && ext.valueBoolean === true,
+                            )
+                        ) {
+                            return <></>;
+                        }
+
                         if (ItemWrapper) {
                             return (
                                 <ItemWrapper item={itemProps} control={Control}>
@@ -107,6 +117,14 @@ export function BaseQuestionnaireResponseForm(props: BaseQuestionnaireResponseFo
                 .map(([key, Control]) => [
                     key,
                     (itemProps: GroupItemProps) => {
+                        if (
+                            itemProps.questionItem.extension?.find(
+                                (ext) => ext.url === ExtensionIdentifier.Hidden && ext.valueBoolean === true,
+                            )
+                        ) {
+                            return <></>;
+                        }
+
                         if (GroupWrapper) {
                             return (
                                 <GroupWrapper item={itemProps} control={Control}>
