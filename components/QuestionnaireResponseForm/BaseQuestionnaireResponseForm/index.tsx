@@ -21,7 +21,6 @@ import {
 import { GroupComponent, GroupItemComponent, GroupItemProps } from './GroupComponent';
 
 import { questionnaireToValidationSchema } from './utils';
-import { ExtensionIdentifier } from 'sdc-qrf/dist/converter/extensions';
 
 export type { QuestionItemProps };
 
@@ -85,11 +84,7 @@ export function BaseQuestionnaireResponseForm(props: BaseQuestionnaireResponseFo
                 .map(([key, Control]) => [
                     key,
                     (itemProps: QuestionItemProps) => {
-                        if (
-                            itemProps.questionItem.extension?.find(
-                                (ext) => ext.url === ExtensionIdentifier.Hidden && ext.valueBoolean === true,
-                            )
-                        ) {
+                        if (itemProps.questionItem.hidden) {
                             return <></>;
                         }
 
@@ -117,11 +112,7 @@ export function BaseQuestionnaireResponseForm(props: BaseQuestionnaireResponseFo
                 .map(([key, Control]) => [
                     key,
                     (itemProps: GroupItemProps) => {
-                        if (
-                            itemProps.questionItem.extension?.find(
-                                (ext) => ext.url === ExtensionIdentifier.Hidden && ext.valueBoolean === true,
-                            )
-                        ) {
+                        if (itemProps.questionItem.hidden) {
                             return <></>;
                         }
 
@@ -189,7 +180,7 @@ export function BaseQuestionnaireResponseForm(props: BaseQuestionnaireResponseFo
                         const initialContext = calcInitialContext(formData.context, formValues);
                         const parentPath = Array.of<string>();
                         return getEnabledQuestions(
-                            formData.context.questionnaire.item!,
+                            formData.context.fceQuestionnaire.item!,
                             parentPath,
                             formValues,
                             initialContext,
