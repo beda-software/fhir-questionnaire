@@ -35,6 +35,7 @@ interface Props
         > {
     onSuccess?: (resource: QuestionnaireResponseFormSaveResponse) => void;
     onFailure?: (error: any) => void;
+    onAutosaveSuccess?: (resource: QuestionnaireResponseFormSaveResponse) => void;
     readOnly?: boolean;
     remoteDataRenderConfig?: {
         renderFailure?: (error: any) => ReactElement;
@@ -60,6 +61,20 @@ export function onFormResponse(props: {
     }
 }
 
+export function onFormDraftResponse(props: {
+    response: RemoteDataResult<QuestionnaireResponseFormSaveResponse>;
+    onSuccess?: (resource: any) => void;
+    onFailure?: (error: any) => void;
+}) {
+    const { response, onSuccess, onFailure } = props;
+
+    if (isSuccess(response)) {
+        onSuccess?.(response.data);
+    } else {
+        onFailure?.(response.error);
+    }
+}
+
 const TIMEOUT_TO_SAVE_DRAFT_RESPONSE_AFTER_MS = 1000;
 
 export function useQuestionnaireResponseForm(props: Props) {
@@ -68,12 +83,21 @@ export function useQuestionnaireResponseForm(props: Props) {
     const memoizedProps = useMemo(() => props, [JSON.stringify(props)]);
 
     const { response, handleSave, handleUpdate } = useQuestionnaireResponseFormData(memoizedProps);
-    const { onSuccess, onFailure, readOnly, initialQuestionnaireResponse } = memoizedProps;
+    const { onSuccess, onFailure, onAutosaveSuccess, readOnly, initialQuestionnaireResponse } = memoizedProps;
 
     const saveDraftDebounced = debounce(async (formData: QuestionnaireResponseFormData) => {
         delete formData.context.questionnaireResponse.meta;
 
-        await handleUpdate(formData);
+        const modifiedFormData = _.merge({}, formData, {
+            context: {
+                questionnaireResponse: {
+                    questionnaire: initialQuestionnaireResponse?.questionnaire,
+                },
+            },
+        });
+
+        const updateResponse = await handleUpdate(modifiedFormData);
+        onFormDraftResponse({ response: updateResponse, onSuccess: onAutosaveSuccess });
     }, TIMEOUT_TO_SAVE_DRAFT_RESPONSE_AFTER_MS);
 
     const onSubmit = async (formData: QuestionnaireResponseFormData) => {

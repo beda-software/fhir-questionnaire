@@ -1,6 +1,6 @@
 import { formatFHIRDateTime, initServices, useService } from '@beda.software/fhir-react';
 import { RemoteDataResult, isFailure, isSuccess, mapSuccess, success } from '@beda.software/remote-data';
-import { Parameters, ParametersParameter, Questionnaire, QuestionnaireResponse } from 'fhir/r4b';
+import { Bundle, Parameters, ParametersParameter, Questionnaire, QuestionnaireResponse, Resource } from 'fhir/r4b';
 import moment from 'moment';
 
 import {
@@ -15,7 +15,13 @@ import {
 
 export type { QuestionnaireResponseFormData } from 'sdc-qrf';
 
-export type QuestionnaireResponseFormSaveResponse = {
+export type QuestionnaireResponseFormSaveResponse<R extends Resource = any> = {
+    questionnaireResponse: QuestionnaireResponse;
+    extracted: boolean;
+    extractedBundle: Bundle<R>[];
+};
+
+export type QuestionnaireResponseFormUpdateResponse = {
     questionnaireResponse: QuestionnaireResponse;
     extracted: boolean;
 };
@@ -259,9 +265,10 @@ export function useQuestionnaireResponseFormData(props: QuestionnaireResponseFor
 
     const handleUpdate = async (
         qrFormData: QuestionnaireResponseFormData,
-    ): Promise<RemoteDataResult<QuestionnaireResponseFormSaveResponse>> => {
+    ): Promise<RemoteDataResult<QuestionnaireResponseFormUpdateResponse>> => {
         const draft = fromQuestionnaireResponseFormData(qrFormData, {
             status: 'in-progress',
+            authored: formatFHIRDateTime(moment()),
         });
         const responseRemoteData = await props.serviceProvider.saveFHIRResource(draft.questionnaireResponse);
         return mapSuccess(responseRemoteData, (questionnaireResponse) => ({
