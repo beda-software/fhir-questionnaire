@@ -235,6 +235,14 @@ export async function handleFormDataSave(
             parameter: [
                 { name: 'questionnaire', resource: questionnaire },
                 { name: 'questionnaire_response', resource: saveQRRemoteData.data },
+                {
+                    name: 'ProvenanceBundle',
+                    resource: {
+                        resourceType: 'Bundle',
+                        type: 'collection',
+                        entry: [],
+                    },
+                },
                 ...(launchContextParameters || []),
             ],
         },
