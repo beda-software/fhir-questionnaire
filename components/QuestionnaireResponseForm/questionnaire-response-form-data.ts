@@ -130,7 +130,7 @@ export function fromQuestionnaireResponseFormData(
        resources specified in the mappers
     8. Returns updated QuestionnaireResponse resource and extract result
 **/
-async function loadQuestionnaireResponseFormData(props: QuestionnaireResponseFormProps) {
+export async function loadQuestionnaireResponseFormData(props: QuestionnaireResponseFormProps) {
     const { launchContextParameters, questionnaireLoader, initialQuestionnaireResponse, serviceProvider, autosave } =
         props;
 
