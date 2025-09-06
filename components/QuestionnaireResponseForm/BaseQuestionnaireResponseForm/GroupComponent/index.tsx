@@ -1,5 +1,5 @@
 import { GroupWrapperProps } from '../';
-import { GroupItemProps as GroupItemPropsBase, QuestionItemComponent, FormItems, FCEQuestionnaireItem } from 'sdc-qrf';
+import { GroupItemProps as GroupItemPropsBase, QuestionItemComponent, FormItems, FCEQuestionnaireItem, getEnabledQuestions } from 'sdc-qrf';
 import { ComponentType, PropsWithChildren, useCallback } from 'react';
 import { useFormContext } from 'react-hook-form';
 import _ from 'lodash';
@@ -42,7 +42,8 @@ export function GroupComponent(props: Props) {
     const fieldName = [...parentPath, linkId];
 
     const { getValues, setValue } = useFormContext();
-    const value = _.get(getValues(), fieldName);
+    const formValues = getValues();
+    const value = _.get(formValues, fieldName);
 
     const items: FormItems[] = value?.items.length ? value.items : [{}];
 
@@ -99,11 +100,22 @@ export function GroupComponent(props: Props) {
         );
     };
 
-    const renderGroupContent = () => (
-        <GroupWidgetComponent {...itemProps} addItem={addItem} removeItem={removeItem}>
-            {items.map((_, index: number) => questionItem.item?.map((i) => renderQuestionItem(i, index)))}
-        </GroupWidgetComponent>
-    );
+    const renderGroupContent = () => {
+        const enabledItems = questionItem.item ? getEnabledQuestions(
+            questionItem.item,
+            [...parentPath, linkId, 'items'],
+            formValues,
+            context[0]!
+        ) : [];
+
+        return (
+            <GroupWidgetComponent {...itemProps} addItem={addItem} removeItem={removeItem}>
+                {items.map((_, index: number) =>
+                    enabledItems.map((i) => renderQuestionItem(i, index))
+                )}
+            </GroupWidgetComponent>
+        );
+    };
 
     return GroupWrapper ? (
         <GroupWrapper item={itemProps} control={Control}>
