@@ -174,7 +174,8 @@ export function BaseQuestionnaireResponseForm(props: BaseQuestionnaireResponseFo
             >
                 <FormWrapper
                     handleSubmit={form.handleSubmit(async () => {
-                        await onSubmit?.({ ...formData, formValues });
+                        const currentFormValues = form.getValues();
+                        await onSubmit?.({ ...formData, formValues: currentFormValues });
                     })}
                     items={useMemo(() => {
                         const initialContext = calcInitialContext(formData.context, formValues);
