@@ -12,7 +12,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@beda.software/fhir-react": "^1.11.0",
+    "@beda.software/fhir-react": "^1.11.1",
     "@beda.software/remote-data": "^1.1.4",
     "@hookform/resolvers": "^3.1.1",
     "@types/fhir": "^0.0.40",
