@@ -154,6 +154,7 @@ export function BaseQuestionnaireResponseForm(props: BaseQuestionnaireResponseFo
                 GroupWrapper={GroupWrapper}
                 questionItemComponents={questionItemComponents}
                 itemControlQuestionItemComponents={itemControlQuestionItemComponents}
+                itemControlGroupItemComponents={itemControlGroupItemComponents}
             />
         ),
         [GroupWrapper, props.groupItemComponent],

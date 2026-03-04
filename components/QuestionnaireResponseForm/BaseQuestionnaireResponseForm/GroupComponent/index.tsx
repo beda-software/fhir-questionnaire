@@ -15,7 +15,9 @@ type Props = PropsWithChildren<{
     itemProps: GroupItemProps;
     Control: GroupItemComponent;
     questionItemComponents: { [x: string]: QuestionItemComponent };
+    // TODO: get rid of passing itemControl* - use them from context
     itemControlQuestionItemComponents: { [x: string]: QuestionItemComponent };
+    itemControlGroupItemComponents: { [x: string]: GroupItemComponent };
     GroupWrapper?: ComponentType<GroupWrapperProps>;
     buildValue?: (existingItems: FormItems[]) => FormItems[];
 }>;
@@ -31,6 +33,7 @@ export function GroupComponent(props: Props) {
         GroupWrapper,
         questionItemComponents,
         itemControlQuestionItemComponents,
+        itemControlGroupItemComponents,
         buildValue = defaultBuildValue,
     } = props;
 
@@ -108,12 +111,23 @@ export function GroupComponent(props: Props) {
             context[0]!
         ) : [];
 
+        const code = questionItem.itemControl?.coding?.[0]?.code;
+        const Component =
+            code && code in itemControlGroupItemComponents
+                ? itemControlGroupItemComponents[code]
+                : GroupWidgetComponent;
+
+        if (!Component) {
+            console.error(`Group item type ${questionItem.type} is not supported`);
+            return null;
+        }
+
         return (
-            <GroupWidgetComponent {...itemProps} addItem={addItem} removeItem={removeItem}>
+            <Component {...itemProps} addItem={addItem} removeItem={removeItem}>
                 {items.map((_, index: number) =>
                     enabledItems.map((i) => renderQuestionItem(i, index))
                 )}
-            </GroupWidgetComponent>
+            </Component>
         );
     };
 
