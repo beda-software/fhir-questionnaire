@@ -140,6 +140,7 @@ export function QuestionnaireResponseForm(props: Props) {
                     onSubmit={onSubmit}
                     onEdit={onEdit}
                     readOnly={readOnly}
+                    fhirService={props.serviceProvider.service}
                     {...props}
                 />
             )}

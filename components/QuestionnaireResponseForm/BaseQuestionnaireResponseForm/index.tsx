@@ -5,6 +5,8 @@ import _ from 'lodash';
 import { FormProvider, useForm, UseFormReturn } from 'react-hook-form';
 import * as yup from 'yup';
 
+import { initServices } from '@beda.software/fhir-react';
+
 import {
     calcInitialContext,
     FormItems,
@@ -44,6 +46,9 @@ export interface BaseQuestionnaireResponseFormProps {
     onSubmit?: (formData: QuestionnaireResponseFormData) => Promise<any>;
     onEdit?: (formData: QuestionnaireResponseFormData) => Promise<any>;
     readOnly?: boolean;
+
+    fhirService: ReturnType<typeof initServices>['service'];
+
     widgetsByQuestionType?: QuestionItemComponentMapping;
     widgetsByQuestionItemControl?: ItemControlQuestionItemComponentMapping;
     widgetsByGroupQuestionItemControl?: ItemControlGroupItemComponentMapping;
@@ -55,7 +60,7 @@ export interface BaseQuestionnaireResponseFormProps {
 }
 
 export function BaseQuestionnaireResponseForm(props: BaseQuestionnaireResponseFormProps) {
-    const { formData, readOnly, onSubmit, onEdit, ItemWrapper, GroupWrapper, FormWrapper } = props;
+    const { formData, readOnly, onSubmit, onEdit, ItemWrapper, GroupWrapper, FormWrapper, fhirService } = props;
 
     const schema: yup.AnyObjectSchema = useMemo(
         () => questionnaireToValidationSchema(formData.context.questionnaire),
@@ -167,6 +172,7 @@ export function BaseQuestionnaireResponseForm(props: BaseQuestionnaireResponseFo
                 setFormValues={(values, fieldPath, value) => {
                     form.setValue(fieldPath.join('.'), value);
                 }}
+                fhirService={fhirService}
                 groupItemComponent={groupItemComponent}
                 itemControlGroupItemComponents={itemControlGroupItemComponents}
                 questionItemComponents={questionItemComponents}

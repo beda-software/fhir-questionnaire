@@ -17,12 +17,12 @@
     "@hookform/resolvers": "^3.1.1",
     "@types/fhir": "^0.0.40",
     "@types/lodash": "^4.14.202",
-    "fhirpath": "^3.5.0",
+    "fhirpath": "^3.18.0",
     "lodash": "^4.17.15",
     "moment": "^2.30.1",
     "query-string": "^7.1.1",
     "react-hook-form": "^7.49.3",
-    "sdc-qrf": "1.0.0-beta.13",
+    "sdc-qrf": "1.1.0-alpha.1",
     "yup": "^1.2.0"
   },
   "devDependencies": {
