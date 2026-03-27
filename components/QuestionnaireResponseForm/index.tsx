@@ -9,6 +9,7 @@ import {
     QuestionnaireResponseFormData,
     QuestionnaireResponseFormProps,
     QuestionnaireResponseFormSaveResponse,
+    QuestionnaireResponseFormUpdateResponse,
     useQuestionnaireResponseFormData,
 } from './questionnaire-response-form-data';
 
@@ -62,7 +63,7 @@ export function onFormResponse(props: {
 }
 
 export function onFormDraftResponse(props: {
-    response: RemoteDataResult<QuestionnaireResponseFormSaveResponse>;
+    response: RemoteDataResult<QuestionnaireResponseFormSaveResponse | QuestionnaireResponseFormUpdateResponse>;
     onSuccess?: (resource: any) => void;
     onFailure?: (error: any) => void;
 }) {
