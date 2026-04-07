@@ -22,7 +22,7 @@ export type {
 export { useFieldController } from './BaseQuestionnaireResponseForm/hooks';
 export { questionnaireIdLoader, questionnaireIdWOAssembleLoader } from './questionnaire-response-form-data';
 
-interface Props
+export interface Props
     extends QuestionnaireResponseFormProps,
         Pick<
             BaseQuestionnaireResponseFormProps,
@@ -112,8 +112,6 @@ export function useQuestionnaireResponseForm(props: Props) {
             },
         });
 
-        delete modifiedFormData.context.questionnaireResponse.meta;
-
         const saveResponse = await handleSave(modifiedFormData);
         onFormResponse({ response: saveResponse, onSuccess, onFailure });
     };
@@ -141,7 +139,7 @@ export function QuestionnaireResponseForm(props: Props) {
                     onSubmit={onSubmit}
                     onEdit={onEdit}
                     readOnly={readOnly}
-                    fhirService={props.serviceProvider.service}
+                    fhirService={props.fhirService ?? props.serviceProvider.service}
                     {...props}
                 />
             )}
