@@ -29,6 +29,7 @@ export type { QuestionItemProps };
 export interface FormWrapperProps {
     handleSubmit: ReturnType<UseFormReturn<FormItems>['handleSubmit']>;
     items: Array<ReturnType<typeof QuestionItem>>;
+    formData: QuestionnaireResponseFormData;
 }
 
 export type ItemWrapperProps = PropsWithChildren<{
@@ -203,6 +204,7 @@ export function BaseQuestionnaireResponseForm(props: BaseQuestionnaireResponseFo
                             );
                         });
                     }, [formData.context, formValues])}
+                    formData={formData}
                 />
             </QuestionnaireResponseFormProvider>
         </FormProvider>
