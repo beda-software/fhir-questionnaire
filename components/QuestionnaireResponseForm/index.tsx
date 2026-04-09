@@ -34,6 +34,7 @@ export interface Props
             | 'FormWrapper'
             | 'groupItemComponent'
             | 'onEdit'
+            | 'customYupTests'
         > {
     onSuccess?: (resource: QuestionnaireResponseFormSaveResponse) => void;
     onFailure?: (error: any) => void;
