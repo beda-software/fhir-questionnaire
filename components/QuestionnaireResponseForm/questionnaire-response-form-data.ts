@@ -27,14 +27,21 @@ export type QuestionnaireResponseFormUpdateResponse = {
 };
 
 interface SdcServiceProvider {
+    /** Validate QuestionnaireResponse with $constraint-check operation */
     constraintCheck?: (params: Parameters) => Promise<RemoteDataResult<any>>;
+    /** Populate QuestionnaireResponse */
     populate?: (params: Parameters) => Promise<RemoteDataResult<QuestionnaireResponse>>;
+    /** Run $extract operation */
     extract?: (params: Parameters) => Promise<RemoteDataResult<any>>;
+    /** Assemble Questionnaire resource with $assemble operation */
     assemble?: (questionnaireId: string) => Promise<RemoteDataResult<Questionnaire>>;
+    /** Get Questionnaire resource */
     getQuestionnaire?: (questionnaireId?: string) => Promise<RemoteDataResult<Questionnaire>>;
+    /** Save completed QuestionnaireResponse */
     saveCompletedQuestionnaireResponse?: (
         qr: QuestionnaireResponse,
     ) => Promise<RemoteDataResult<QuestionnaireResponse>>;
+    /** Save in-progress QuestionnaireResponse (called when autosave is enabled) */
     saveInProgressQuestionnaireResponse?: (
         qr: QuestionnaireResponse,
     ) => Promise<RemoteDataResult<QuestionnaireResponse>>;
