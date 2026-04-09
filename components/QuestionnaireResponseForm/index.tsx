@@ -33,6 +33,7 @@ export interface Props
             | 'GroupWrapper'
             | 'FormWrapper'
             | 'groupItemComponent'
+            | 'onEdit'
         > {
     onSuccess?: (resource: QuestionnaireResponseFormSaveResponse) => void;
     onFailure?: (error: any) => void;
