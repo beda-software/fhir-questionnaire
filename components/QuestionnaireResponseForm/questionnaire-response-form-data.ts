@@ -36,7 +36,7 @@ interface SdcServiceProvider {
     /** Assemble Questionnaire resource with $assemble operation */
     assemble?: (questionnaireId: string) => Promise<RemoteDataResult<Questionnaire>>;
     /** Get Questionnaire resource */
-    getQuestionnaire?: (questionnaireId?: string) => Promise<RemoteDataResult<Questionnaire>>;
+    getQuestionnaire?: (questionnaireId: string) => Promise<RemoteDataResult<Questionnaire>>;
     /** Save completed QuestionnaireResponse */
     saveCompletedQuestionnaireResponse?: (
         qr: QuestionnaireResponse,
@@ -58,12 +58,9 @@ export interface QuestionnaireResponseFormProps {
 }
 
 export function getSdcServices(
-    props: Pick<
-        QuestionnaireResponseFormProps,
-        'serviceProvider' | 'fhirService' | 'sdcServiceProvider' | 'questionnaireLoader'
-    >,
+    props: Pick<QuestionnaireResponseFormProps, 'serviceProvider' | 'fhirService' | 'sdcServiceProvider'>,
 ): Required<SdcServiceProvider> {
-    const { serviceProvider, fhirService, sdcServiceProvider, questionnaireLoader } = props;
+    const { serviceProvider, fhirService, sdcServiceProvider } = props;
 
     const defaultService = fhirService ?? serviceProvider.service;
 
@@ -91,7 +88,7 @@ export function getSdcServices(
         });
     };
 
-    const defaultGetRawQuestionnaire = async (questionnaireId: string) => {
+    const defaultGetQuestionnaire = async (questionnaireId: string) => {
         return mapSuccess(
             await defaultService<Questionnaire>({
                 method: 'GET',
@@ -109,20 +106,6 @@ export function getSdcServices(
             }),
             (questionnaire) => questionnaire,
         );
-    };
-
-    const defaultGetQuestionnaire = async (questionnaireId?: string) => {
-        if (questionnaireId) {
-            return defaultAssemble(questionnaireId);
-        }
-
-        if (questionnaireLoader.type === 'raw-id') {
-            return defaultGetRawQuestionnaire(questionnaireLoader.questionnaireId);
-        }
-        if (questionnaireLoader.type === 'id') {
-            return defaultAssemble(questionnaireLoader.questionnaireId);
-        }
-        return questionnaireLoader.questionnaireService();
     };
 
     return {
@@ -262,11 +245,21 @@ export function fromQuestionnaireResponseFormData(
     8. Returns updated QuestionnaireResponse resource and extract result
 **/
 export async function loadQuestionnaireResponseFormData(props: QuestionnaireResponseFormProps) {
-    const { launchContextParameters, initialQuestionnaireResponse, autosave } = props;
+    const { launchContextParameters, initialQuestionnaireResponse, autosave, questionnaireLoader } = props;
 
     const sdcServices = getSdcServices(props);
 
-    const questionnaireRemoteData = await sdcServices.getQuestionnaire();
+    const fetchQuestionnaire = async () => {
+        if (questionnaireLoader.type === 'raw-id') {
+            return sdcServices.getQuestionnaire(questionnaireLoader.questionnaireId);
+        }
+        if (questionnaireLoader.type === 'id') {
+            return sdcServices.assemble(questionnaireLoader.questionnaireId);
+        }
+        return questionnaireLoader.questionnaireService();
+    };
+
+    const questionnaireRemoteData = await fetchQuestionnaire();
 
     if (isFailure(questionnaireRemoteData)) {
         return questionnaireRemoteData;
