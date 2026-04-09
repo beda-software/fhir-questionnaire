@@ -1,5 +1,5 @@
 import { cleanObject, formatFHIRDateTime, initServices, useService } from '@beda.software/fhir-react';
-import { RemoteDataResult, failure, isFailure, isSuccess, mapSuccess, success } from '@beda.software/remote-data';
+import { RemoteDataResult, isFailure, isSuccess, mapSuccess, success } from '@beda.software/remote-data';
 import { Bundle, Parameters, ParametersParameter, Questionnaire, QuestionnaireResponse, Resource } from 'fhir/r4b';
 import moment from 'moment';
 
@@ -27,14 +27,13 @@ export type QuestionnaireResponseFormUpdateResponse = {
 };
 
 interface SdcServiceProvider {
-    service?: ReturnType<typeof initServices>['service'];
-    assemble?: ReturnType<typeof initServices>['service'];
-    constraintCheck?: ReturnType<typeof initServices>['service'];
-    populate?: ReturnType<typeof initServices>['service'];
-    extract?: ReturnType<typeof initServices>['service'];
-    saveQuestionnaireResponse?: (
+    constraintCheck?: (params: Parameters) => Promise<RemoteDataResult<any>>;
+    populate?: (params: Parameters) => Promise<RemoteDataResult<QuestionnaireResponse>>;
+    extract?: (params: Parameters) => Promise<RemoteDataResult<any>>;
+    getQuestionnaire?: (questionnaireId: string) => Promise<RemoteDataResult<Questionnaire>>;
+    saveQuestionnaireResponse?: (qr: QuestionnaireResponse) => Promise<RemoteDataResult<QuestionnaireResponse>>;
+    saveQuestionnaireResponseIntermediate?: (
         qr: QuestionnaireResponse,
-        service?: ReturnType<typeof initServices>['service'],
     ) => Promise<RemoteDataResult<QuestionnaireResponse>>;
 }
 
@@ -42,7 +41,6 @@ export interface QuestionnaireResponseFormProps {
     questionnaireLoader: QuestionnaireLoader;
     initialQuestionnaireResponse?: Partial<QuestionnaireResponse>;
     launchContextParameters?: ParametersParameter[];
-    /** Deprecated: Prefer using sdcServiceProvider or fhirService instead */
     serviceProvider: Pick<ReturnType<typeof initServices>, 'service'>;
     sdcServiceProvider?: SdcServiceProvider;
     fhirService?: ReturnType<typeof initServices>['service'];
@@ -56,16 +54,78 @@ export function getSdcServices(props: {
 }): Required<SdcServiceProvider> {
     const { serviceProvider, fhirService, sdcServiceProvider } = props;
 
+    const defaultService = fhirService ?? serviceProvider.service;
+
+    const defaultGetQuestionnaire = async (questionnaireId: string) => {
+        return defaultService<Questionnaire>({
+            method: 'GET',
+            url: `/Questionnaire/${questionnaireId}/$assemble`,
+        });
+    };
+
+    const defaultConstraintCheck = async (params: Parameters) => {
+        return defaultService<any>({
+            method: 'POST',
+            url: '/QuestionnaireResponse/$constraint-check',
+            data: params,
+        });
+    };
+
+    const defaultPopulate = async (params: Parameters) => {
+        return defaultService<QuestionnaireResponse>({
+            method: 'POST',
+            url: '/Questionnaire/$populate',
+            data: params,
+        });
+    };
+
+    const defaultExtract = async (params: Parameters) => {
+        return defaultService<QuestionnaireResponse>({
+            method: 'POST',
+            url: '/Questionnaire/$extract',
+            data: params,
+        });
+    };
+
     return {
-        service: sdcServiceProvider?.service ?? fhirService ?? serviceProvider.service,
-        assemble: sdcServiceProvider?.assemble ?? fhirService ?? serviceProvider.service,
-        constraintCheck: sdcServiceProvider?.constraintCheck ?? fhirService ?? serviceProvider.service,
-        populate: sdcServiceProvider?.populate ?? fhirService ?? serviceProvider.service,
-        extract: sdcServiceProvider?.extract ?? fhirService ?? serviceProvider.service,
+        getQuestionnaire: sdcServiceProvider?.getQuestionnaire ?? defaultGetQuestionnaire,
+        constraintCheck: sdcServiceProvider?.constraintCheck ?? defaultConstraintCheck,
+        populate: sdcServiceProvider?.populate ?? defaultPopulate,
+        extract: sdcServiceProvider?.extract ?? defaultExtract,
         saveQuestionnaireResponse:
-            sdcServiceProvider?.saveQuestionnaireResponse ?? persistSaveQuestionnaireReponseService,
+            sdcServiceProvider?.saveQuestionnaireResponse ??
+            persistSaveQuestionnaireReponseServiceFactory(defaultService),
+        saveQuestionnaireResponseIntermediate:
+            sdcServiceProvider?.saveQuestionnaireResponseIntermediate ??
+            persistSaveQuestionnaireReponseServiceFactory(defaultService),
     };
 }
+
+export const getQuestionnaireFromRawIdFactory = (
+    service: ReturnType<typeof initServices>['service'],
+): ((questionnaireId: string) => Promise<RemoteDataResult<Questionnaire>>) => {
+    return async (questionnaireId: string) =>
+        mapSuccess(
+            await service<Questionnaire>({
+                method: 'GET',
+                url: `/Questionnaire/${questionnaireId}`,
+            }),
+            (questionnaire) => questionnaire,
+        );
+};
+
+export const getQuestionnaireFromAssembleFactory = (
+    service: ReturnType<typeof initServices>['service'],
+): ((questionnaireId: string) => Promise<RemoteDataResult<Questionnaire>>) => {
+    return async (questionnaireId: string) =>
+        mapSuccess(
+            await service<Questionnaire>({
+                method: 'GET',
+                url: `/Questionnaire/${questionnaireId}/$assemble`,
+            }),
+            (questionnaire) => questionnaire,
+        );
+};
 
 interface QuestionnaireServiceLoader {
     type: 'service';
@@ -112,24 +172,25 @@ type QuestionnaireResponseSaveService = (
     service?: ReturnType<typeof initServices>['service'],
 ) => Promise<RemoteDataResult<QuestionnaireResponse>>;
 
+// use factory pattern (qr, service => (qr)())
 export const inMemorySaveQuestionnaireResponseService: QuestionnaireResponseSaveService = (qr) =>
     Promise.resolve(success(qr));
 
-export const persistSaveQuestionnaireReponseService: QuestionnaireResponseSaveService = async (qr, service) => {
-    if (!service) {
-        return Promise.resolve(failure('Service not provided'));
-    }
-
-    const versionId = qr.meta && qr.meta.versionId;
-    return mapSuccess(
-        await service<QuestionnaireResponse>({
-            method: qr.id ? 'PUT' : 'POST',
-            url: `/${qr.resourceType}${qr.id ? '/' + qr.id : ''}`,
-            ...(qr.id && versionId ? { headers: { 'If-Match': versionId } } : {}),
-            data: cleanObject(qr),
-        }),
-        (savedQR) => savedQR,
-    );
+export const persistSaveQuestionnaireReponseServiceFactory = (
+    service: ReturnType<typeof initServices>['service'],
+): ((qr: QuestionnaireResponse) => Promise<RemoteDataResult<QuestionnaireResponse>>) => {
+    return async (qr: QuestionnaireResponse) => {
+        const versionId = qr.meta && qr.meta.versionId;
+        return mapSuccess(
+            await service<QuestionnaireResponse>({
+                method: qr.id ? 'PUT' : 'POST',
+                url: `/${qr.resourceType}${qr.id ? '/' + qr.id : ''}`,
+                ...(qr.id && versionId ? { headers: { 'If-Match': versionId } } : {}),
+                data: cleanObject(qr),
+            }),
+            (savedQR) => savedQR,
+        );
+    };
 };
 
 export function toQuestionnaireResponseFormData(
@@ -191,20 +252,15 @@ export function fromQuestionnaireResponseFormData(
 export async function loadQuestionnaireResponseFormData(props: QuestionnaireResponseFormProps) {
     const { launchContextParameters, questionnaireLoader, initialQuestionnaireResponse, autosave } = props;
 
+    const service = props.fhirService ?? props.serviceProvider.service;
     const sdcServices = getSdcServices(props);
 
     const fetchQuestionnaire = () => {
         if (questionnaireLoader.type === 'raw-id') {
-            return sdcServices.service<Questionnaire>({
-                method: 'GET',
-                url: `/Questionnaire/${questionnaireLoader.questionnaireId}`,
-            });
+            return getQuestionnaireFromRawIdFactory(service)(questionnaireLoader.questionnaireId);
         }
         if (questionnaireLoader.type === 'id') {
-            return sdcServices.assemble<Questionnaire>({
-                method: 'GET',
-                url: `/Questionnaire/${questionnaireLoader.questionnaireId}/$assemble`,
-            });
+            return getQuestionnaireFromAssembleFactory(service)(questionnaireLoader.questionnaireId);
         }
 
         return questionnaireLoader.questionnaireService();
@@ -229,11 +285,7 @@ export async function loadQuestionnaireResponseFormData(props: QuestionnaireResp
         populateRemoteData = success(initialQuestionnaireResponse as QuestionnaireResponse);
     } else {
         populateRemoteData = mapSuccess(
-            await sdcServices.populate<QuestionnaireResponse>({
-                method: 'POST',
-                url: '/Questionnaire/$populate',
-                data: params,
-            }),
+            await sdcServices.populate(params),
             (draft): QuestionnaireResponse => ({
                 ...initialQuestionnaireResponse,
                 ...draft,
@@ -241,10 +293,7 @@ export async function loadQuestionnaireResponseFormData(props: QuestionnaireResp
         );
         if (isSuccess(populateRemoteData) && autosave) {
             populateRemoteData.data.status = 'in-progress';
-            populateRemoteData = await sdcServices.saveQuestionnaireResponse(
-                populateRemoteData.data,
-                sdcServices.service,
-            );
+            populateRemoteData = await sdcServices.saveQuestionnaireResponseIntermediate(populateRemoteData.data);
         }
     }
 
@@ -270,39 +319,35 @@ export async function handleFormDataSave(
         authored: formatFHIRDateTime(moment()),
     });
 
-    const constraintRemoteData = await sdcServices.constraintCheck({
-        url: '/QuestionnaireResponse/$constraint-check',
-        method: 'POST',
-        data: {
-            resourceType: 'Parameters',
-            parameter: [
-                { name: 'Questionnaire', resource: questionnaire },
-                { name: 'QuestionnaireResponse', resource: questionnaireResponse },
-                ...(launchContextParameters || []),
-            ],
-        },
-    });
+    const constraintCheckParams: Parameters = {
+        resourceType: 'Parameters',
+        parameter: [
+            { name: 'Questionnaire', resource: questionnaire },
+            { name: 'QuestionnaireResponse', resource: questionnaireResponse },
+            ...(launchContextParameters || []),
+        ],
+    };
+
+    const constraintRemoteData = await sdcServices.constraintCheck(constraintCheckParams);
     if (isFailure(constraintRemoteData)) {
         return constraintRemoteData;
     }
 
-    const saveQRRemoteData = await sdcServices.saveQuestionnaireResponse(questionnaireResponse, sdcServices.service);
+    const saveQRRemoteData = await sdcServices.saveQuestionnaireResponse(questionnaireResponse);
     if (isFailure(saveQRRemoteData)) {
         return saveQRRemoteData;
     }
 
-    const extractRemoteData = await sdcServices.extract<any>({
-        method: 'POST',
-        url: '/Questionnaire/$extract',
-        data: {
-            resourceType: 'Parameters',
-            parameter: [
-                { name: 'questionnaire', resource: questionnaire },
-                { name: 'questionnaire_response', resource: saveQRRemoteData.data },
-                ...(launchContextParameters || []),
-            ],
-        },
-    });
+    const extractParams: Parameters = {
+        resourceType: 'Parameters',
+        parameter: [
+            { name: 'questionnaire', resource: questionnaire },
+            { name: 'questionnaire_response', resource: saveQRRemoteData.data },
+            ...(launchContextParameters || []),
+        ],
+    };
+
+    const extractRemoteData = await sdcServices.extract(extractParams);
 
     // TODO: save extract result info QuestionnaireResponse.extractedResources and store
     // TODO: extracted flag
@@ -337,10 +382,7 @@ export function useQuestionnaireResponseFormData(props: QuestionnaireResponseFor
             authored: formatFHIRDateTime(moment()),
         });
 
-        const responseRemoteData = await sdcServices.saveQuestionnaireResponse(
-            draft.questionnaireResponse,
-            sdcServices.service,
-        );
+        const responseRemoteData = await sdcServices.saveQuestionnaireResponseIntermediate(draft.questionnaireResponse);
 
         return mapSuccess(responseRemoteData, (questionnaireResponse) => ({
             questionnaireResponse,
