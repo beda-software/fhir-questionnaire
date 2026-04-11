@@ -9,7 +9,10 @@
     },
     "scripts": {
         "test": "vitest",
-        "typecheck": "tsc --noEmit"
+        "typecheck": "tsc --noEmit",
+        "extract": "lingui extract",
+        "compile": "lingui compile --typescript",
+        "prepare": "yarn extract && yarn compile"
     },
     "dependencies": {
         "@beda.software/fhir-react": "^1.11.1",
