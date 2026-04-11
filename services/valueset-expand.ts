@@ -1,6 +1,5 @@
-import { SearchParams } from '@beda.software/fhir-react';
+import { initServices, SearchParams } from '@beda.software/fhir-react';
 import { isSuccess, mapSuccess, success, failure, RemoteDataResult, RemoteData } from '@beda.software/remote-data';
-import { service } from 'aidbox-react/lib/services/service';
 import axios from 'axios';
 import { ValueSet, ValueSetExpansionContains } from 'fhir/r4b';
 import { upperFirst } from 'lodash';
@@ -49,7 +48,11 @@ export async function expandHealthSamuraiValueSet(
     }
 }
 
-export async function expandFHIRValueSet(answerValueSet: string | undefined, searchText: string) {
+export async function expandFHIRValueSet(
+    answerValueSet: string | undefined,
+    searchText: string,
+    service: ReturnType<typeof initServices>['service'],
+) {
     if (!answerValueSet) {
         return [];
     }
@@ -88,6 +91,7 @@ interface ExpandValueSetProps {
     answerValueSet: string | undefined;
     searchText: string;
     predefinedValueSetsList?: string[];
+    service: ReturnType<typeof initServices>['service'];
 }
 
 /*
@@ -97,7 +101,7 @@ interface ExpandValueSetProps {
 */
 
 export async function expandValueSet(props: ExpandValueSetProps) {
-    const { answerValueSet, searchText, predefinedValueSetsList = [] } = props;
+    const { answerValueSet, searchText, predefinedValueSetsList = [], service } = props;
 
     if (!answerValueSet) {
         return [];
@@ -115,17 +119,22 @@ export async function expandValueSet(props: ExpandValueSetProps) {
         }
     }
 
-    const response = await expandFHIRValueSet(answerValueSet, searchText);
+    const response = await expandFHIRValueSet(answerValueSet, searchText, service);
 
     return response;
 }
 
-export async function expandEMRValueSet(answerValueSet: string | undefined, searchText: string) {
+export async function expandEMRValueSet(
+    answerValueSet: string | undefined,
+    searchText: string,
+    service: ReturnType<typeof initServices>['service'],
+) {
     const predefinedValueSetsList: string[] = [];
 
     return expandValueSet({
         answerValueSet,
         searchText,
         predefinedValueSetsList,
+        service,
     });
 }
