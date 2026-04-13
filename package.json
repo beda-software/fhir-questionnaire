@@ -6,21 +6,11 @@
     "types": "./dist/index.d.ts",
     "exports": {
         ".": "./dist/index.js",
-        "./components": "./dist/components/*.js",
-        "./components/QuestionnaireResponseForm": "./dist/components/QuestionnaireResponseForm/index.js",
-        "./components/QuestionnaireResponseForm/BaseQuestionnaireResponseForm": "./dist/components/QuestionnaireResponseForm/BaseQuestionnaireResponseForm/index.js",
-        "./contexts": "./dist/contexts/*.js",
-        "./services": "./dist/services/*.js",
+        "./components": "./dist/components/index.js",
+        "./contexts": "./dist/contexts/index.js",
+        "./services": "./dist/services/index.js",
         "./package.json": "./package.json"
     },
-    "files": [
-        "dist",
-        "README.md",
-        "index.ts",
-        "components",
-        "contexts",
-        "services"
-    ],
     "peerDependencies": {
         "@types/react": "*",
         "react": "*",
