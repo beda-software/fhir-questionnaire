@@ -27,5 +27,5 @@
         "esModuleInterop": true
     },
     "include": ["index.ts", "components/**/*", "contexts/**/*", "services/**/*"],
-    "exclude": ["dist", "node_modules", "**/*.test.ts", "**/*.test.tsx"]
+    "exclude": ["dist", "node_modules", "**/*.test.ts", "**/*.test.tsx", "**/__tests__/**"]
 }
