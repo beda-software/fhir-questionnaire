@@ -11,6 +11,14 @@
         "./services": "./dist/services/index.js",
         "./package.json": "./package.json"
     },
+    "files": [
+        "dist",
+        "README.md",
+        "index.ts",
+        "components",
+        "contexts",
+        "services"
+    ],
     "peerDependencies": {
         "@types/react": "*",
         "react": "*",
@@ -19,7 +27,7 @@
     "scripts": {
         "test": "vitest",
         "typecheck": "tsc --noEmit",
-        "build": "node -e \"require('fs').rmSync('dist',{ recursive: true, force: true })\" && tsc -p tsconfig.json",
+        "build": "tsc -p tsconfig.json",
         "extract": "lingui extract",
         "compile": "lingui compile --typescript",
         "prepare": "npm run compile && npm run build"
