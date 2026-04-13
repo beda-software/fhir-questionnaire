@@ -107,7 +107,8 @@ export async function expandValueSet(props: ExpandValueSetProps) {
         return [];
     }
 
-    const valueSetName = answerValueSet.split('/').at(-1) as string;
+    const answerValueSetParts = answerValueSet.split('/');
+    const valueSetName = answerValueSetParts[answerValueSetParts.length - 1] as string;
 
     if (predefinedValueSetsList.includes(valueSetName)) {
         const response = await expandHealthSamuraiValueSet(answerValueSet, searchText);

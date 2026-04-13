@@ -20,12 +20,12 @@
 
         "outDir": "dist",
 
-        "baseUrl": "./src",
+        "baseUrl": ".",
         "noUncheckedIndexedAccess": true,
         "noUnusedLocals": true,
         "resolveJsonModule": true,
         "esModuleInterop": true
     },
-    "include": ["components/**/*"],
-    "exclude": ["src/setupTests.ts", "src/**/*.test.ts", "src/**/*.test.tsx"]
+    "include": ["index.ts", "components/**/*", "contexts/**/*", "services/**/*"],
+    "exclude": ["dist", "node_modules", "**/*.test.ts", "**/*.test.tsx"]
 }
