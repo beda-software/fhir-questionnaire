@@ -33,9 +33,9 @@ interface SdcServiceProvider {
     populate?: (params: Parameters) => Promise<RemoteDataResult<QuestionnaireResponse>>;
     /** Run $extract operation */
     extract?: (params: Parameters) => Promise<RemoteDataResult<any>>;
-    /** Assemble Questionnaire resource with $assemble operation */
+    /** Assemble Questionnaire resource with $assemble operation when using questionnaireLoader.type === 'id'*/
     assemble?: (questionnaireId: string) => Promise<RemoteDataResult<Questionnaire>>;
-    /** Get Questionnaire resource */
+    /** Get Questionnaire resource when using questionnaireLoader.type === 'raw-id'*/
     getQuestionnaire?: (questionnaireId: string) => Promise<RemoteDataResult<Questionnaire>>;
     /** Save completed QuestionnaireResponse */
     saveCompletedQuestionnaireResponse?: (
