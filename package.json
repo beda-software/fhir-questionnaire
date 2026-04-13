@@ -7,7 +7,20 @@
         ".": {
             "types": "./dist/index.d.ts",
             "default": "./dist/index.js"
-        }
+        },
+        "./components/*": {
+            "types": "./dist/components/*.d.ts",
+            "default": "./dist/components/*.js"
+        },
+        "./contexts/*": {
+            "types": "./dist/contexts/*.d.ts",
+            "default": "./dist/contexts/*.js"
+        },
+        "./services/*": {
+            "types": "./dist/services/*.d.ts",
+            "default": "./dist/services/*.js"
+        },
+        "./package.json": "./package.json"
     },
     "files": ["dist", "README.md"],
     "peerDependencies": {
