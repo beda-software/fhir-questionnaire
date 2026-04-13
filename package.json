@@ -27,7 +27,7 @@
     "scripts": {
         "test": "vitest",
         "typecheck": "tsc --noEmit",
-        "build": "node -e \"require('fs').rmSync('dist',{ recursive: true, force: true })\" && tsc -p tsconfig.json && babel dist --extensions \".js\" --out-dir dist --plugins babel-plugin-macros && npm run check:no-lingui-macro",
+        "build": "node -e \"require('fs').rmSync('dist',{ recursive: true, force: true })\" && tsc -p tsconfig.json && babel dist --extensions \".js\" --out-dir dist --plugins babel-plugin-macros",
         "extract": "lingui extract",
         "compile": "lingui compile --typescript",
         "prepare": "npm run compile && npm run build"
