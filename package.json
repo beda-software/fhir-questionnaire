@@ -1,33 +1,16 @@
 {
     "name": "@beda.software/fhir-questionnaire",
     "version": "2.0.0-alpha.0",
+    "type": "module",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "exports": {
-        ".": {
-            "types": "./dist/index.d.ts",
-            "default": "./dist/index.js"
-        },
-        "./components/*": {
-            "types": "./dist/components/*.d.ts",
-            "default": "./dist/components/*.js"
-        },
-        "./components/QuestionnaireResponseForm": {
-            "types": "./dist/components/QuestionnaireResponseForm/index.d.ts",
-            "default": "./dist/components/QuestionnaireResponseForm/index.js"
-        },
-        "./components/QuestionnaireResponseForm/BaseQuestionnaireResponseForm": {
-            "types": "./dist/components/QuestionnaireResponseForm/BaseQuestionnaireResponseForm/index.d.ts",
-            "default": "./dist/components/QuestionnaireResponseForm/BaseQuestionnaireResponseForm/index.js"
-        },
-        "./contexts/*": {
-            "types": "./dist/contexts/*.d.ts",
-            "default": "./dist/contexts/*.js"
-        },
-        "./services/*": {
-            "types": "./dist/services/*.d.ts",
-            "default": "./dist/services/*.js"
-        },
+        ".": "./dist/index.js",
+        "./components": "./dist/components/*.js",
+        "./components/QuestionnaireResponseForm": "./dist/components/QuestionnaireResponseForm/index.js",
+        "./components/QuestionnaireResponseForm/BaseQuestionnaireResponseForm": "./dist/components/QuestionnaireResponseForm/BaseQuestionnaireResponseForm/index.js",
+        "./contexts": "./dist/contexts/*.js",
+        "./services": "./dist/services/*.js",
         "./package.json": "./package.json"
     },
     "files": [

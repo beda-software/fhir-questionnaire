@@ -2,7 +2,7 @@
     "compilerOptions": {
         "target": "es6",
         "lib": ["DOM", "ES5", "DOM.Iterable", "ES2019"],
-        "module": "commonjs",
+        "module": "esnext",
         "moduleResolution": "node",
         "importHelpers": true,
         "useDefineForClassFields": true,
