@@ -12,6 +12,10 @@
             "types": "./dist/components/*.d.ts",
             "default": "./dist/components/*.js"
         },
+        "./components/QuestionnaireResponseForm": {
+            "types": "./dist/components/QuestionnaireResponseForm/index.d.ts",
+            "default": "./dist/components/QuestionnaireResponseForm/index.js"
+        },
         "./components/QuestionnaireResponseForm/BaseQuestionnaireResponseForm": {
             "types": "./dist/components/QuestionnaireResponseForm/BaseQuestionnaireResponseForm/index.d.ts",
             "default": "./dist/components/QuestionnaireResponseForm/BaseQuestionnaireResponseForm/index.js"
@@ -28,7 +32,11 @@
     },
     "files": [
         "dist",
-        "README.md"
+        "README.md",
+        "index.ts",
+        "components",
+        "contexts",
+        "services"
     ],
     "peerDependencies": {
         "@types/react": "*",
@@ -38,7 +46,7 @@
     "scripts": {
         "test": "vitest",
         "typecheck": "tsc --noEmit",
-        "build": "tsc -p tsconfig.json",
+        "build": "node -e \"require('fs').rmSync('dist',{ recursive: true, force: true })\" && tsc -p tsconfig.json",
         "extract": "lingui extract",
         "compile": "lingui compile --typescript",
         "prepare": "npm run compile && npm run build"
