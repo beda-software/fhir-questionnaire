@@ -15,9 +15,7 @@
         "dist",
         "README.md",
         "index.ts",
-        "components",
-        "contexts",
-        "services"
+        "components/locale"
     ],
     "peerDependencies": {
         "@types/react": "*",
