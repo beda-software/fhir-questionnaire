@@ -21,6 +21,8 @@
     ],
     "peerDependencies": {
         "@types/react": "*",
+        "@lingui/core": "^4.3.0",
+        "@lingui/react": "^4.3.0",
         "react": "*",
         "typescript": "*"
     },
