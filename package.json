@@ -18,7 +18,7 @@
         "components/locale"
     ],
     "peerDependencies": {
-        "@types/react": "*",
+        "@types/react": "^18.2.14",
         "@lingui/core": "^4.3.0",
         "@lingui/react": "^4.3.0",
         "react": "*",
@@ -54,7 +54,7 @@
         "@babel/core": "^7.28.4",
         "@lingui/cli": "^4.3.0",
         "@lingui/macro": "^4.3.0",
-        "@types/react": "^19.1.5",
+        "@types/react": "18.2.14",
         "babel-plugin-macros": "^3.1.0",
         "eslint": "^9.23.0",
         "eslint-config-prettier": "^10.1.1",
