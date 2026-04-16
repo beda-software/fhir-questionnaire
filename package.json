@@ -5,16 +5,27 @@
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "exports": {
-        ".": "./dist/index.js",
-        "./components": "./dist/components/index.js",
-        "./contexts": "./dist/contexts/index.js",
-        "./services": "./dist/services/index.js",
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js"
+        },
+        "./components": {
+            "types": "./dist/components/index.d.ts",
+            "import": "./dist/components/index.js"
+        },
+        "./contexts": {
+            "types": "./dist/contexts/index.d.ts",
+            "import": "./dist/contexts/index.js"
+        },
+        "./services": {
+            "types": "./dist/services/index.d.ts",
+            "import": "./dist/services/index.js"
+        },
         "./package.json": "./package.json"
     },
     "files": [
         "dist",
         "README.md",
-        "index.ts",
         "components/locale"
     ],
     "peerDependencies": {
