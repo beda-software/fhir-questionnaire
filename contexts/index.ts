@@ -1,4 +1,4 @@
-import { BaseQuestionnaireResponseFormProps } from 'components';
+import { BaseQuestionnaireResponseFormProps } from '../components';
 import { DebouncedFunc } from 'lodash';
 import { createContext } from 'react';
 import { FormItems, ItemControlGroupItemComponentMapping, ItemControlQuestionItemComponentMapping } from 'sdc-qrf';
