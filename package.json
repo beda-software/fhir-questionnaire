@@ -29,9 +29,12 @@
         "components/locale"
     ],
     "peerDependencies": {
+        "@beda.software/fhir-react": "^1.11.1",
+        "@beda.software/remote-data": "^1.1.4",
         "@types/react": "^18.2.14",
         "@lingui/core": "^4.3.0",
         "@lingui/react": "^4.3.0",
+        "axios": "^1.8.4",
         "react": "*",
         "typescript": "*"
     },
