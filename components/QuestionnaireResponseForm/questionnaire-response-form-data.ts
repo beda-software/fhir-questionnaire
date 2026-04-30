@@ -116,10 +116,10 @@ export function getSdcServices(
         extract: sdcServiceProvider?.extract ?? defaultExtract,
         saveCompletedQuestionnaireResponse:
             sdcServiceProvider?.saveCompletedQuestionnaireResponse ??
-            persistSaveQuestionnaireReponseServiceFactory(defaultService),
+            persistSaveQuestionnaireResponseServiceFactory(defaultService),
         saveInProgressQuestionnaireResponse:
             sdcServiceProvider?.saveInProgressQuestionnaireResponse ??
-            persistSaveQuestionnaireReponseServiceFactory(defaultService),
+            persistSaveQuestionnaireResponseServiceFactory(defaultService),
     };
 }
 
@@ -171,7 +171,7 @@ type QuestionnaireResponseSaveService = (
 export const inMemorySaveQuestionnaireResponseService: QuestionnaireResponseSaveService = (qr) =>
     Promise.resolve(success(qr));
 
-export const persistSaveQuestionnaireReponseServiceFactory = (
+export const persistSaveQuestionnaireResponseServiceFactory = (
     service: ReturnType<typeof initServices>['service'],
 ): ((qr: QuestionnaireResponse) => Promise<RemoteDataResult<QuestionnaireResponse>>) => {
     return async (qr: QuestionnaireResponse) => {
