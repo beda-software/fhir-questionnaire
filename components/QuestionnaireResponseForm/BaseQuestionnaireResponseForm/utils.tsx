@@ -90,9 +90,7 @@ export function questionnaireItemsToValidationSchema(
                 code: yup.string().nullable(),
             });
 
-            if (item.required) {
-                quantitySchema.required();
-            }
+            schema = item.required ? quantitySchema.required() : quantitySchema;
             schema = applyCustomYupTestsToItem(item, quantitySchema, customYupTests);
             schema = createSchemaArrayOfValues(yup.object({ Quantity: schema }));
         } else if (item.type === 'date') {
