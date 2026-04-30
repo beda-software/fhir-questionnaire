@@ -34,7 +34,11 @@ function applyCustomYupTestsToItem(
     const applicableYupTests = customYupTests[itemControlCode] ?? [];
 
     applicableYupTests.forEach((test) => {
-        schema = schema.test(test);
+        try {
+            schema = schema.test(test);
+        } catch (error) {
+            console.error(`Failed to apply custom yup test "${test.name}" for item control "${itemControlCode}"`, error);
+        }
     });
     return schema;
 }
