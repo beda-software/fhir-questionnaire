@@ -38,13 +38,17 @@
         "react": "*",
         "typescript": "*"
     },
+    "publishConfig": {
+        "access": "public"
+    },
     "scripts": {
         "test": "vitest",
         "typecheck": "tsc --noEmit",
         "build": "node -e \"require('fs').rmSync('dist',{ recursive: true, force: true })\" && tsc -p tsconfig.json && babel dist --extensions \".js\" --out-dir dist --plugins babel-plugin-macros",
         "extract": "lingui extract",
         "compile": "lingui compile --typescript",
-        "prepare": "npm run compile && npm run build"
+        "prepare": "yarn compile && yarn build",
+        "prepublishOnly": "yarn typecheck && yarn test run"
     },
     "dependencies": {
         "@beda.software/fhir-react": "^1.11.1",
