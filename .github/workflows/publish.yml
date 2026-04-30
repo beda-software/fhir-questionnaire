@@ -1,15 +1,8 @@
 name: Publish
 
 on:
-  push:
-    tags:
-      - 'v*'
-  workflow_dispatch:
-    inputs:
-      tag:
-        description: 'npm dist-tag (e.g. latest, alpha, beta)'
-        required: false
-        default: 'latest'
+  release:
+    types: [published]
 
 jobs:
   publish:
