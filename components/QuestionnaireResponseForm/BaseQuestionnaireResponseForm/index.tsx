@@ -22,13 +22,14 @@ import {
 } from 'sdc-qrf';
 import { GroupComponent, GroupItemComponent, GroupItemProps } from './GroupComponent';
 
-import { questionnaireToValidationSchema } from './utils';
+import { CustomYupTestsMap, questionnaireToValidationSchema } from './utils';
 
 export type { QuestionItemProps };
 
 export interface FormWrapperProps {
     handleSubmit: ReturnType<UseFormReturn<FormItems>['handleSubmit']>;
     items: Array<ReturnType<typeof QuestionItem>>;
+    formData: QuestionnaireResponseFormData;
 }
 
 export type ItemWrapperProps = PropsWithChildren<{
@@ -57,14 +58,26 @@ export interface BaseQuestionnaireResponseFormProps {
     ItemWrapper?: ComponentType<ItemWrapperProps>;
     GroupWrapper?: ComponentType<GroupWrapperProps>;
     FormWrapper: ComponentType<FormWrapperProps>;
+
+    customYupTests?: CustomYupTestsMap;
 }
 
 export function BaseQuestionnaireResponseForm(props: BaseQuestionnaireResponseFormProps) {
-    const { formData, readOnly, onSubmit, onEdit, ItemWrapper, GroupWrapper, FormWrapper, fhirService } = props;
+    const {
+        formData,
+        readOnly,
+        onSubmit,
+        onEdit,
+        ItemWrapper,
+        GroupWrapper,
+        FormWrapper,
+        fhirService,
+        customYupTests,
+    } = props;
 
     const schema: yup.AnyObjectSchema = useMemo(
-        () => questionnaireToValidationSchema(formData.context.questionnaire),
-        [formData.context.questionnaire],
+        () => questionnaireToValidationSchema(formData.context.questionnaire, customYupTests),
+        [formData.context.questionnaire, customYupTests],
     );
 
     const form = useForm<FormItems>({
@@ -203,6 +216,7 @@ export function BaseQuestionnaireResponseForm(props: BaseQuestionnaireResponseFo
                             );
                         });
                     }, [formData.context, formValues])}
+                    formData={formData}
                 />
             </QuestionnaireResponseFormProvider>
         </FormProvider>

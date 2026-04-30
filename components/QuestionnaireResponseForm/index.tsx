@@ -22,7 +22,7 @@ export type {
 export { useFieldController } from './BaseQuestionnaireResponseForm/hooks';
 export { questionnaireIdLoader, questionnaireIdWOAssembleLoader } from './questionnaire-response-form-data';
 
-interface Props
+export interface Props
     extends QuestionnaireResponseFormProps,
         Pick<
             BaseQuestionnaireResponseFormProps,
@@ -33,6 +33,8 @@ interface Props
             | 'GroupWrapper'
             | 'FormWrapper'
             | 'groupItemComponent'
+            | 'onEdit'
+            | 'customYupTests'
         > {
     onSuccess?: (resource: QuestionnaireResponseFormSaveResponse) => void;
     onFailure?: (error: any) => void;
@@ -141,7 +143,7 @@ export function QuestionnaireResponseForm(props: Props) {
                     onSubmit={onSubmit}
                     onEdit={onEdit}
                     readOnly={readOnly}
-                    fhirService={props.serviceProvider.service}
+                    fhirService={props.fhirService ?? props.serviceProvider.service}
                     {...props}
                 />
             )}
