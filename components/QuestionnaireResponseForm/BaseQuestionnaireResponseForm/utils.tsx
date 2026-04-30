@@ -37,7 +37,10 @@ function applyCustomYupTestsToItem(
         try {
             schema = schema.test(test);
         } catch (error) {
-            console.error(`Failed to apply custom yup test "${test.name}" for item control "${itemControlCode}"`, error);
+            console.error(
+                `Failed to apply custom yup test "${test.name}" for item control "${itemControlCode}"`,
+                error,
+            );
         }
     });
     return schema;
@@ -95,7 +98,7 @@ export function questionnaireItemsToValidationSchema(
             });
 
             schema = item.required ? quantitySchema.required() : quantitySchema;
-            schema = applyCustomYupTestsToItem(item, quantitySchema, customYupTests);
+            schema = applyCustomYupTestsToItem(item, schema, customYupTests);
             schema = createSchemaArrayOfValues(yup.object({ Quantity: schema }));
         } else if (item.type === 'date') {
             schema = yup.date();
