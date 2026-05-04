@@ -50,9 +50,15 @@ export interface BaseQuestionnaireResponseFormProps {
 
     fhirService: ReturnType<typeof initServices>['service'];
 
+    /** @deprecated use itemComponents instead */
     widgetsByQuestionType?: QuestionItemComponentMapping;
+    /** @deprecated use itemControlComponents instead */
     widgetsByQuestionItemControl?: ItemControlQuestionItemComponentMapping;
+    /** @deprecated use groupControlComponents instead */
     widgetsByGroupQuestionItemControl?: ItemControlGroupItemComponentMapping;
+    questionItemComponents?: QuestionItemComponentMapping;
+    itemControlQuestionItemComponents?: ItemControlQuestionItemComponentMapping;
+    itemControlGroupItemComponents?: ItemControlGroupItemComponentMapping;
     groupItemComponent: GroupItemComponent;
 
     ItemWrapper?: ComponentType<ItemWrapperProps>;
@@ -152,16 +158,16 @@ export function BaseQuestionnaireResponseForm(props: BaseQuestionnaireResponseFo
     );
 
     const questionItemComponents = useMemo(
-        () => wrapControls(props.widgetsByQuestionType),
-        [wrapControls, props.widgetsByQuestionType],
+        () => wrapControls(props.questionItemComponents ?? props.widgetsByQuestionType),
+        [wrapControls, props.questionItemComponents, props.widgetsByQuestionType],
     );
     const itemControlQuestionItemComponents = useMemo(
-        () => wrapControls(props.widgetsByQuestionItemControl),
-        [wrapControls, props.widgetsByQuestionItemControl],
+        () => wrapControls(props.itemControlQuestionItemComponents ?? props.widgetsByQuestionItemControl),
+        [wrapControls, props.itemControlQuestionItemComponents, props.widgetsByQuestionItemControl],
     );
     const itemControlGroupItemComponents = useMemo(
-        () => wrapGroups(props.widgetsByGroupQuestionItemControl),
-        [wrapGroups, props.widgetsByGroupQuestionItemControl],
+        () => wrapGroups(props.itemControlGroupItemComponents ?? props.widgetsByGroupQuestionItemControl),
+        [wrapGroups, props.itemControlGroupItemComponents, props.widgetsByGroupQuestionItemControl],
     );
 
     const groupItemComponent = useMemo(
