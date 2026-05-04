@@ -20,7 +20,7 @@ export type {
     GroupWrapperProps,
 } from './BaseQuestionnaireResponseForm';
 export { useFieldController } from './BaseQuestionnaireResponseForm/hooks';
-export { questionnaireIdLoader, questionnaireIdWOAssembleLoader } from './questionnaire-response-form-data';
+export * from './questionnaire-response-form-data';
 
 export interface Props
     extends QuestionnaireResponseFormProps,

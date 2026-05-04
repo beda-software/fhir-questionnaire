@@ -1,6 +1,14 @@
 import { cleanObject, formatFHIRDateTime, initServices, useService } from '@beda.software/fhir-react';
-import { RemoteDataResult, isFailure, isSuccess, mapSuccess, success } from '@beda.software/remote-data';
-import { Bundle, Parameters, ParametersParameter, Questionnaire, QuestionnaireResponse, Resource } from 'fhir/r4b';
+import { RemoteDataResult, isFailure, isSuccess, mapSuccess, success, failure } from '@beda.software/remote-data';
+import {
+    Bundle,
+    Parameters,
+    ParametersParameter,
+    Questionnaire,
+    QuestionnaireResponse,
+    Resource,
+    OperationOutcome,
+} from 'fhir/r4b';
 import moment from 'moment';
 
 import {
@@ -19,6 +27,12 @@ export type QuestionnaireResponseFormSaveResponse<R extends Resource = any> = {
     questionnaireResponse: QuestionnaireResponse;
     extracted: boolean;
     extractedBundle: Bundle<R>[];
+    extractedError?: OperationOutcome;
+};
+
+export type QuestionnaireResponseFormSaveResponseFailure = {
+    questionnaireResponse?: QuestionnaireResponse;
+    extractedError?: OperationOutcome;
 };
 
 export type QuestionnaireResponseFormUpdateResponse = {
@@ -302,7 +316,7 @@ export async function handleFormDataSave(
     props: QuestionnaireResponseFormProps & {
         formData: QuestionnaireResponseFormData;
     },
-): Promise<RemoteDataResult<QuestionnaireResponseFormSaveResponse>> {
+): Promise<RemoteDataResult<QuestionnaireResponseFormSaveResponse, QuestionnaireResponseFormSaveResponseFailure>> {
     const { formData, launchContextParameters } = props;
 
     const sdcServices = getSdcServices(props);
@@ -323,12 +337,16 @@ export async function handleFormDataSave(
 
     const constraintRemoteData = await sdcServices.constraintCheck(constraintCheckParams);
     if (isFailure(constraintRemoteData)) {
-        return constraintRemoteData;
+        return failure({
+            extractedError: constraintRemoteData.error,
+        });
     }
 
     const saveQRRemoteData = await sdcServices.saveCompletedQuestionnaireResponse(questionnaireResponse);
     if (isFailure(saveQRRemoteData)) {
-        return saveQRRemoteData;
+        return failure({
+            extractedError: saveQRRemoteData.error,
+        });
     }
 
     const extractParams: Parameters = {
@@ -341,6 +359,30 @@ export async function handleFormDataSave(
     };
 
     const extractRemoteData = await sdcServices.extract(extractParams);
+
+    if (isFailure(extractRemoteData)) {
+        if (sdcServices.saveInProgressQuestionnaireResponse === sdcServices.saveCompletedQuestionnaireResponse) {
+            const errorQRData: QuestionnaireResponse = {
+                id: saveQRRemoteData.data.id,
+                resourceType: 'QuestionnaireResponse',
+                status: 'in-progress',
+            };
+
+            const saveQRRemoteDataError = await sdcServices.saveInProgressQuestionnaireResponse(errorQRData);
+
+            if (isSuccess(saveQRRemoteDataError)) {
+                return failure({
+                    extractedError: extractRemoteData.error,
+                    questionnaireResponse: saveQRRemoteDataError.data,
+                });
+            }
+        }
+
+        return failure({
+            extractedError: extractRemoteData.error,
+            questionnaireResponse: saveQRRemoteData.data,
+        });
+    }
 
     // TODO: save extract result info QuestionnaireResponse.extractedResources and store
     // TODO: extracted flag
@@ -385,7 +427,7 @@ export function useQuestionnaireResponseFormData(props: QuestionnaireResponseFor
 
     const handleSave = async (
         qrFormData: QuestionnaireResponseFormData,
-    ): Promise<RemoteDataResult<QuestionnaireResponseFormSaveResponse>> =>
+    ): Promise<RemoteDataResult<QuestionnaireResponseFormSaveResponse, QuestionnaireResponseFormSaveResponseFailure>> =>
         handleFormDataSave({
             ...props,
             formData: qrFormData,
