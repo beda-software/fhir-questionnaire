@@ -32,9 +32,10 @@
         "@beda.software/fhir-react": "*",
         "@beda.software/remote-data": "*",
         "@lingui/core": "*",
+        "@lingui/macro": "*",
         "@lingui/react": "*",
         "@types/react": "*",
-        "axios": "^1.8.4",
+        "axios": "*",
         "react": "*",
         "react-hook-form": "*",
         "typescript": "*"
