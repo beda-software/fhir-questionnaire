@@ -1,4 +1,4 @@
-import { cleanObject, formatFHIRDateTime, initServices, useService } from '@beda.software/fhir-react';
+import { cleanObject, formatFHIRDateTime, initServices, useService, uuid4 } from '@beda.software/fhir-react';
 import { RemoteDataResult, isFailure, isSuccess, mapSuccess, success, failure } from '@beda.software/remote-data';
 import {
     Bundle,
@@ -279,6 +279,10 @@ export async function loadQuestionnaireResponseFormData(props: QuestionnaireResp
         return questionnaireRemoteData;
     }
 
+    const fceQuestionnaire = toFirstClassExtension(questionnaireRemoteData.data);
+
+    const questionnaireId = fceQuestionnaire.id ?? fceQuestionnaire.assembledFrom;
+
     const params: Parameters = {
         resourceType: 'Parameters',
         parameter: [
@@ -296,6 +300,8 @@ export async function loadQuestionnaireResponseFormData(props: QuestionnaireResp
             (draft): QuestionnaireResponse => ({
                 ...initialQuestionnaireResponse,
                 ...draft,
+                id: draft.id ?? uuid4(),
+                questionnaire: questionnaireId,
             }),
         );
         if (isSuccess(populateRemoteData) && autosave) {
