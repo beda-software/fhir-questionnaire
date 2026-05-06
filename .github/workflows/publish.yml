@@ -21,17 +21,6 @@ jobs:
 
       - run: yarn install --frozen-lockfile
 
-      - name: Determine dist-tag
-        id: dist_tag
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "tag=${{ github.event.inputs.tag }}" >> "$GITHUB_OUTPUT"
-          elif echo "${{ github.ref_name }}" | grep -qE '(alpha|beta|rc)'; then
-            echo "tag=alpha" >> "$GITHUB_OUTPUT"
-          else
-            echo "tag=latest" >> "$GITHUB_OUTPUT"
-          fi
-
-      - run: npm publish --tag ${{ steps.dist_tag.outputs.tag }} --provenance
+      - run: npm publish --tag latest --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
