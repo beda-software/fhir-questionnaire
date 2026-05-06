@@ -1,0 +1,1 @@
+/*eslint-disable*/import type{Messages}from"@lingui/core";export const messages=JSON.parse("{\"K9iXv7\":\"Содержит хотя бы одну строчную букву\",\"P3PnoH\":\"Содержит хотя бы одну цифру\",\"z7rD1k\":\"Содержит хотя бы одну заглавную букву\",\"mPwVbf\":\"Должно быть допустимым временем (ЧЧ:мм:сс)\",\"FNINKp\":\"время\"}")as Messages;

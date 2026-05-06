@@ -1,0 +1,31 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2026-05-01 12:37+0400\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: @lingui/cli\n"
+"Language: de\n"
+
+#: components/__tests__/questionnaire/custom-validation.test.ts:19
+#: components/__tests__/questionnaire/custom-validation.test.ts:32
+#: components/__tests__/questionnaire/custom-validation.test.ts:56
+msgid "Has at least one lower case letter"
+msgstr "Enthält mindestens einen Kleinbuchstaben"
+
+#: components/__tests__/questionnaire/custom-validation.test.ts:78
+msgid "Has at least one number"
+msgstr "Enthält mindestens eine Zahl"
+
+#: components/__tests__/questionnaire/custom-validation.test.ts:43
+#: components/__tests__/questionnaire/custom-validation.test.ts:67
+msgid "Has at least one uppercase letter"
+msgstr "Enthält mindestens einen Großbuchstaben"
+
+#: components/QuestionnaireResponseForm/BaseQuestionnaireResponseForm/utils.tsx:118
+msgid "Must be a valid time (HH:mm:ss)"
+msgstr "Muss eine gültige Uhrzeit sein (HH:mm:ss)"
+
+#: components/QuestionnaireResponseForm/BaseQuestionnaireResponseForm/utils.tsx:118
+msgid "time"
+msgstr "Zeit"

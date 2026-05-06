@@ -1,34 +1,51 @@
 # Installation instructions
 
-- Add this repository as a project dependency
+Install the package:
+
 ```sh
-git submodule add 'https or git repository link' packages/@beda.software/fhir-questionnaire/
-```
-- Update your project `package.json` with `yarn` workspaces configuration
-```json
-{
-    ...,
-    "private": true,
-    "workspaces": [
-        "packages/@beda.software/fhir-questionnaire"
-    ],
-    "dependencies": {
-        ...,
-        "@beda.software/fhir-questionnaire": "1.0.0",
-        ...
-    }
-}
-```
-Note that CRA-based applications do not allow ts or tsx to be transpilled outside of the `src` folder, so the workspace package might need to be installed under `src/packages/@beda.software/fhir-questionnaire` instead.
-- Link workspace as a project dependency
-```sh
-yarn install
+yarn add @beda.software/fhir-questionnaire
 ```
 
-Please refer to the official `yarn` documentation for additional details on [yarn workspace](https://classic.yarnpkg.com/lang/en/docs/workspaces/) usage.
+You can also install with other package managers:
+
+```sh
+npm install @beda.software/fhir-questionnaire
+pnpm add @beda.software/fhir-questionnaire
+```
+
+### Local development
+
+To use an unreleased version, install directly from Git or a local path:
+
+```sh
+# from the remote repository — pin to a specific commit hash for reproducibility
+yarn add git+https://github.com/beda-software/fhir-questionnaire.git#<commit-hash>
+
+# from a local clone
+yarn add git+file:///home/user/path/to/fhir-questionnaire#<commit-hash>
+```
+
+`prepare` runs on install and builds the `dist` artifacts in-place.
+
+## Peer dependencies
+
+Make sure your project provides peer dependencies:
+
+- `react`
+- `@types/react`
+- `typescript`
+
+## Usage
+
+```ts
+import { QuestionnaireResponseForm, useQuestionnaireResponseForm } from '@beda.software/fhir-questionnaire';
+```
 
 # Development
 
 Make sure global dependencies (like `react`) are defined as peer-dependencies.
 
-`yarn workspace @beda.software/fhir-questionnaire cmd` can be used while in a root project to manage submodule dependecies (when needed).
+```sh
+yarn typecheck
+yarn test
+```

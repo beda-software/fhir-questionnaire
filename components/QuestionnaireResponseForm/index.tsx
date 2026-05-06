@@ -9,6 +9,7 @@ import {
     QuestionnaireResponseFormData,
     QuestionnaireResponseFormProps,
     QuestionnaireResponseFormSaveResponse,
+    QuestionnaireResponseFormUpdateResponse,
     useQuestionnaireResponseFormData,
 } from './questionnaire-response-form-data';
 
@@ -19,19 +20,24 @@ export type {
     GroupWrapperProps,
 } from './BaseQuestionnaireResponseForm';
 export { useFieldController } from './BaseQuestionnaireResponseForm/hooks';
-export { questionnaireIdLoader, questionnaireIdWOAssembleLoader } from './questionnaire-response-form-data';
+export * from './questionnaire-response-form-data';
 
-interface Props
+export interface Props
     extends QuestionnaireResponseFormProps,
         Pick<
             BaseQuestionnaireResponseFormProps,
             | 'widgetsByQuestionType'
             | 'widgetsByQuestionItemControl'
             | 'widgetsByGroupQuestionItemControl'
+            | 'questionItemComponents'
+            | 'itemControlQuestionItemComponents'
+            | 'itemControlGroupItemComponents'
             | 'ItemWrapper'
             | 'GroupWrapper'
             | 'FormWrapper'
             | 'groupItemComponent'
+            | 'onEdit'
+            | 'customYupTests'
         > {
     onSuccess?: (resource: QuestionnaireResponseFormSaveResponse) => void;
     onFailure?: (error: any) => void;
@@ -62,7 +68,7 @@ export function onFormResponse(props: {
 }
 
 export function onFormDraftResponse(props: {
-    response: RemoteDataResult<QuestionnaireResponseFormSaveResponse>;
+    response: RemoteDataResult<QuestionnaireResponseFormSaveResponse | QuestionnaireResponseFormUpdateResponse>;
     onSuccess?: (resource: any) => void;
     onFailure?: (error: any) => void;
 }) {
@@ -140,7 +146,7 @@ export function QuestionnaireResponseForm(props: Props) {
                     onSubmit={onSubmit}
                     onEdit={onEdit}
                     readOnly={readOnly}
-                    fhirService={props.serviceProvider.service}
+                    fhirService={props.fhirService ?? props.serviceProvider.service}
                     {...props}
                 />
             )}
