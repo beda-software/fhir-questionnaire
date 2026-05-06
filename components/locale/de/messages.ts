@@ -1,0 +1,1 @@
+/*eslint-disable*/import type{Messages}from"@lingui/core";export const messages=JSON.parse("{\"K9iXv7\":\"Enthält mindestens einen Kleinbuchstaben\",\"P3PnoH\":\"Enthält mindestens eine Zahl\",\"z7rD1k\":\"Enthält mindestens einen Großbuchstaben\",\"mPwVbf\":\"Muss eine gültige Uhrzeit sein (HH:mm:ss)\",\"FNINKp\":\"Zeit\"}")as Messages;

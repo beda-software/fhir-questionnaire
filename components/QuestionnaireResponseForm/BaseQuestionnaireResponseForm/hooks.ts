@@ -6,14 +6,17 @@ import { FCEQuestionnaireItem, FormAnswerItems, useQuestionnaireResponseFormCont
 
 export function useFieldController<T = unknown>(fieldName: Array<string | number>, questionItem: FCEQuestionnaireItem) {
     const qrfContext = useQuestionnaireResponseFormContext();
-    const { readOnly, repeats } = questionItem;
+    const { readOnly, repeats, entryFormat, helpText } = questionItem;
     const { control } = useFormContext();
+
+    const isGroup = questionItem.type === 'group';
+    const defaultValue = isGroup ? { items: [] } : [];
 
     // @ts-expect-error because T might be array
     const { field, fieldState } = useController<T>({
         control: control,
         name: fieldName.join('.'),
-        ...(repeats ? { defaultValue: [] } : {}),
+        ...(repeats ? { defaultValue } : {}),
     });
 
     const onMultiChange = useCallback(
@@ -36,12 +39,19 @@ export function useFieldController<T = unknown>(fieldName: Array<string | number
         [repeats, field],
     );
 
+    // This is a wrapper for react-select that always wrap single value into array
+    // @ts-expect-error It's hard to define proper type of onSelect
+    const onSelect = useCallback((option: unknown) => field.onChange([].concat(option)), [field]);
+
     return {
         ...field,
         value: field.value as T | undefined,
         onChange: (value: T | undefined) => field.onChange(value),
         onMultiChange,
+        onSelect,
         fieldState,
         disabled: readOnly || qrfContext.readOnly,
+        placeholder: entryFormat,
+        helpText,
     };
 }

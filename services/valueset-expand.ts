@@ -1,6 +1,5 @@
-import { SearchParams } from '@beda.software/fhir-react';
+import { initServices, SearchParams } from '@beda.software/fhir-react';
 import { isSuccess, mapSuccess, success, failure, RemoteDataResult, RemoteData } from '@beda.software/remote-data';
-import { service } from 'aidbox-react/lib/services/service';
 import axios from 'axios';
 import { ValueSet, ValueSetExpansionContains } from 'fhir/r4b';
 import { upperFirst } from 'lodash';
@@ -49,7 +48,11 @@ export async function expandHealthSamuraiValueSet(
     }
 }
 
-export async function expandFHIRValueSet(answerValueSet: string | undefined, searchText: string) {
+export async function expandFHIRValueSet(
+    service: ReturnType<typeof initServices>['service'],
+    answerValueSet: string | undefined,
+    searchText: string,
+) {
     if (!answerValueSet) {
         return [];
     }
@@ -85,6 +88,7 @@ export async function expandFHIRValueSet(answerValueSet: string | undefined, sea
 }
 
 interface ExpandValueSetProps {
+    service: ReturnType<typeof initServices>['service'];
     answerValueSet: string | undefined;
     searchText: string;
     predefinedValueSetsList?: string[];
@@ -97,13 +101,14 @@ interface ExpandValueSetProps {
 */
 
 export async function expandValueSet(props: ExpandValueSetProps) {
-    const { answerValueSet, searchText, predefinedValueSetsList = [] } = props;
+    const { answerValueSet, searchText, predefinedValueSetsList = [], service } = props;
 
     if (!answerValueSet) {
         return [];
     }
 
-    const valueSetName = answerValueSet.split('/').at(-1) as string;
+    const answerValueSetParts = answerValueSet.split('/');
+    const valueSetName = answerValueSetParts[answerValueSetParts.length - 1] as string;
 
     if (predefinedValueSetsList.includes(valueSetName)) {
         const response = await expandHealthSamuraiValueSet(answerValueSet, searchText);
@@ -115,15 +120,20 @@ export async function expandValueSet(props: ExpandValueSetProps) {
         }
     }
 
-    const response = await expandFHIRValueSet(answerValueSet, searchText);
+    const response = await expandFHIRValueSet(service, answerValueSet, searchText);
 
     return response;
 }
 
-export async function expandEMRValueSet(answerValueSet: string | undefined, searchText: string) {
+export async function expandEMRValueSet(
+    service: ReturnType<typeof initServices>['service'],
+    answerValueSet: string | undefined,
+    searchText: string,
+) {
     const predefinedValueSetsList: string[] = [];
 
     return expandValueSet({
+        service,
         answerValueSet,
         searchText,
         predefinedValueSetsList,
