@@ -49,9 +49,9 @@ export async function expandHealthSamuraiValueSet(
 }
 
 export async function expandFHIRValueSet(
+    service: ReturnType<typeof initServices>['service'],
     answerValueSet: string | undefined,
     searchText: string,
-    service: ReturnType<typeof initServices>['service'],
 ) {
     if (!answerValueSet) {
         return [];
@@ -88,10 +88,10 @@ export async function expandFHIRValueSet(
 }
 
 interface ExpandValueSetProps {
+    service: ReturnType<typeof initServices>['service'];
     answerValueSet: string | undefined;
     searchText: string;
     predefinedValueSetsList?: string[];
-    service: ReturnType<typeof initServices>['service'];
 }
 
 /*
@@ -120,22 +120,22 @@ export async function expandValueSet(props: ExpandValueSetProps) {
         }
     }
 
-    const response = await expandFHIRValueSet(answerValueSet, searchText, service);
+    const response = await expandFHIRValueSet(service, answerValueSet, searchText);
 
     return response;
 }
 
 export async function expandEMRValueSet(
+    service: ReturnType<typeof initServices>['service'],
     answerValueSet: string | undefined,
     searchText: string,
-    service: ReturnType<typeof initServices>['service'],
 ) {
     const predefinedValueSetsList: string[] = [];
 
     return expandValueSet({
+        service,
         answerValueSet,
         searchText,
         predefinedValueSetsList,
-        service,
     });
 }
