@@ -87,5 +87,9 @@
         "typescript": "^5.1.6",
         "typescript-eslint": "^8.28.0",
         "vitest": "^3.2.4"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/beda-software/fhir-questionnaire.git"
     }
 }
