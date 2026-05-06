@@ -55,7 +55,7 @@ interface SdcServiceProvider {
     saveCompletedQuestionnaireResponse?: (
         qr: QuestionnaireResponse,
     ) => Promise<RemoteDataResult<QuestionnaireResponse>>;
-    /** Save in-progress QuestionnaireResponse (called when autosave is enabled) */
+    /** Save in-progress QuestionnaireResponse  */
     saveInProgressQuestionnaireResponse?: (
         qr: QuestionnaireResponse,
     ) => Promise<RemoteDataResult<QuestionnaireResponse>>;
@@ -367,21 +367,17 @@ export async function handleFormDataSave(
     const extractRemoteData = await sdcServices.extract(extractParams);
 
     if (isFailure(extractRemoteData)) {
-        if (sdcServices.saveInProgressQuestionnaireResponse === sdcServices.saveCompletedQuestionnaireResponse) {
-            const errorQRData: QuestionnaireResponse = {
-                id: saveQRRemoteData.data.id,
-                resourceType: 'QuestionnaireResponse',
-                status: 'in-progress',
-            };
+        // if extract fails we use the same saveCompletedQuestionnaireResponse to rollback QR with the in-progress status to avoid data loss
+        const saveQRRemoteDataError = await sdcServices.saveCompletedQuestionnaireResponse({
+            ...saveQRRemoteData.data,
+            status: 'in-progress',
+        });
 
-            const saveQRRemoteDataError = await sdcServices.saveInProgressQuestionnaireResponse(errorQRData);
-
-            if (isSuccess(saveQRRemoteDataError)) {
-                return failure({
-                    extractedError: extractRemoteData.error,
-                    questionnaireResponse: saveQRRemoteDataError.data,
-                });
-            }
+        if (isSuccess(saveQRRemoteDataError)) {
+            return failure({
+                extractedError: extractRemoteData.error,
+                questionnaireResponse: saveQRRemoteDataError.data,
+            });
         }
 
         return failure({
