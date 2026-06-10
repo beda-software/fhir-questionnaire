@@ -1,6 +1,6 @@
 {
     "name": "@beda.software/fhir-questionnaire",
-    "version": "0.1.0-alpha.3",
+    "version": "0.1.0-alpha.4",
     "type": "module",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -66,7 +66,7 @@
         "moment": "^2.30.1",
         "query-string": "^7.1.1",
         "react-hook-form": "^7.49.3",
-        "sdc-qrf": "1.1.0-alpha.3",
+        "sdc-qrf": "1.1.0-alpha.6",
         "tslib": "^2.8.1",
         "yup": "^1.2.0"
     },
