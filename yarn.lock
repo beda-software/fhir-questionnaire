@@ -3037,10 +3037,10 @@ scheduler@^0.23.0:
   dependencies:
     loose-envify "^1.1.0"
 
-sdc-qrf@1.1.0-alpha.6:
-  version "1.1.0-alpha.6"
-  resolved "https://registry.yarnpkg.com/sdc-qrf/-/sdc-qrf-1.1.0-alpha.6.tgz#121647e736ae2263a177c2463e5e7e2409f8df4a"
-  integrity sha512-9dqiYvLwPUFfWW4I5puAOQ/0kYrDzetMm5uUNFU4p0isFNHreY8rXtvhgpD1hiJAY/YBq2sNKFtBmWdUuGEElQ==
+sdc-qrf@1.1.0-alpha.7:
+  version "1.1.0-alpha.7"
+  resolved "https://registry.yarnpkg.com/sdc-qrf/-/sdc-qrf-1.1.0-alpha.7.tgz#da6729839a22c1f60700fe1a4c8a79182170b736"
+  integrity sha512-hTFhdRu/HZsv2VPxU4vzbfsCKvH/9zcyA7pvI937uvOCk59B/NdYJZVmhfngPYFNRC060ir7pOiTsuTM5eHhtw==
   dependencies:
     classnames "^2.5.1"
     fhirpath "^3.18.0"
