@@ -1,6 +1,6 @@
 import { cleanObject, formatFHIRDateTime, initServices, useService, uuid4 } from '@beda.software/fhir-react';
 import { RemoteDataResult, isFailure, isSuccess, mapSuccess, success, failure } from '@beda.software/remote-data';
-import { SdcServiceProvider, SdcServiceProviderContext } from 'contexts';
+import { SdcServiceProvider, SdcServiceProviderContext } from '../../contexts';
 import {
     Bundle,
     Parameters,
@@ -425,10 +425,7 @@ export function useQuestionnaireResponseFormData(props: QuestionnaireResponseFor
     const handleSave = async (
         qrFormData: QuestionnaireResponseFormData,
     ): Promise<RemoteDataResult<QuestionnaireResponseFormSaveResponse, QuestionnaireResponseFormSaveResponseFailure>> =>
-        handleFormDataSave(
-            { ...props, formData: qrFormData },
-            sdcServiceProviderFromContext,
-        );
+        handleFormDataSave({ ...props, formData: qrFormData }, sdcServiceProviderFromContext);
 
     return { response, handleSave, handleUpdate };
 }
