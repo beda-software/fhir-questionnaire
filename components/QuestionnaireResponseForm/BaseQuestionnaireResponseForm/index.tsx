@@ -19,6 +19,8 @@ import {
     QuestionItemProps,
     QuestionnaireResponseFormData,
     QuestionnaireResponseFormProvider,
+    useQuestionnaireResponseFormContext,
+    useVariablesResolver,
 } from 'sdc-qrf';
 import { GroupComponent, GroupItemComponent, GroupItemProps } from './GroupComponent';
 
@@ -81,6 +83,8 @@ export function BaseQuestionnaireResponseForm(props: BaseQuestionnaireResponseFo
         customYupTests,
     } = props;
 
+    const { evaluateFhirpath } = useQuestionnaireResponseFormContext();
+
     const schema: yup.AnyObjectSchema = useMemo(
         () => questionnaireToValidationSchema(formData.context.questionnaire, customYupTests),
         [formData.context.questionnaire, customYupTests],
@@ -100,6 +104,19 @@ export function BaseQuestionnaireResponseForm(props: BaseQuestionnaireResponseFo
     }, [form, formData.context, onEdit]);
 
     const formValues = form.watch();
+
+    const baseContext = useMemo(() => calcInitialContext(formData.context, formValues), [formData.context, formValues]);
+
+    const { contexts } = useVariablesResolver({
+        initialContext: baseContext,
+        branchItems: { qrItems: [baseContext.resource] },
+        fhirService,
+        evaluateFhirpath,
+        variable: formData.context.fceQuestionnaire.variable,
+        prefix: 'root',
+    });
+
+    const initialContext = contexts[0] ?? baseContext;
 
     const wrapControls = useCallback(
         (mapping?: { [x: string]: QuestionItemComponent }): { [x: string]: QuestionItemComponent } => {
@@ -204,7 +221,6 @@ export function BaseQuestionnaireResponseForm(props: BaseQuestionnaireResponseFo
                         await onSubmit?.({ ...formData, formValues: currentFormValues });
                     })}
                     items={useMemo(() => {
-                        const initialContext = calcInitialContext(formData.context, formValues);
                         const parentPath = Array.of<string>();
                         return getEnabledQuestions(
                             formData.context.fceQuestionnaire.item!,
@@ -221,7 +237,7 @@ export function BaseQuestionnaireResponseForm(props: BaseQuestionnaireResponseFo
                                 />
                             );
                         });
-                    }, [formData.context, formValues])}
+                    }, [formData.context.fceQuestionnaire.item, formValues, initialContext])}
                     formData={formData}
                 />
             </QuestionnaireResponseFormProvider>
