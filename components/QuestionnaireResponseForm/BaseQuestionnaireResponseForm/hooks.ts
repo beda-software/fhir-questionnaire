@@ -16,6 +16,11 @@ export function useFieldController<T = unknown>(fieldName: Array<string | number
     const { field, fieldState } = useController<T>({
         control: control,
         name: fieldName.join('.'),
+        // exact: false is required to receive updates when an ancestor path is
+        // written as a whole, e.g., setValue(linkId, undefined):
+        // such writes emit a single event named with the ancestor path, which an
+        // exact-match subscription on this leaf path would miss.
+        exact: false,
         ...(repeats ? { defaultValue } : {}),
     });
 
