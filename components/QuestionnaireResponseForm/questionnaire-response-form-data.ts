@@ -1,6 +1,11 @@
 import { cleanObject, formatFHIRDateTime, initServices, useService, uuid4 } from '@beda.software/fhir-react';
 import { RemoteDataResult, isFailure, isSuccess, mapSuccess, success, failure } from '@beda.software/remote-data';
-import { SdcServiceProvider, SdcServiceProviderContext } from '../../contexts';
+import {
+    SdcServiceProvider,
+    SdcServiceProviderContext,
+    useClinicalContext,
+} from '../../contexts';
+import { appendLaunchContextParameters } from '../../utils';
 import {
     Bundle,
     Parameters,
@@ -11,7 +16,7 @@ import {
     OperationOutcome,
 } from 'fhir/r4b';
 import moment from 'moment';
-import { useContext } from 'react';
+import { useCallback, useContext, useMemo } from 'react';
 
 import {
     toFirstClassExtension,
@@ -392,10 +397,50 @@ export async function handleFormDataSave(
 
 export function useQuestionnaireResponseFormData(props: QuestionnaireResponseFormProps, deps: any[] = []) {
     const sdcServiceProviderFromContext = useContext(SdcServiceProviderContext);
-    const sdcServices = getSdcServices(props, sdcServiceProviderFromContext);
+    const { parameters: clinicalParams } = useClinicalContext();
+
+    const {
+        questionnaireLoader,
+        initialQuestionnaireResponse,
+        serviceProvider,
+        sdcServiceProvider,
+        fhirService,
+        autosave,
+        launchContextParameters: propsLaunchParams,
+    } = props;
+
+    const mergedLaunchContextParameters = useMemo(() => {
+        return appendLaunchContextParameters(clinicalParams, propsLaunchParams ?? []);
+    }, [clinicalParams, propsLaunchParams]);
+
+    const propsWithClinicalContext = useMemo(
+        () => ({
+            questionnaireLoader,
+            initialQuestionnaireResponse,
+            serviceProvider,
+            sdcServiceProvider,
+            fhirService,
+            autosave,
+            launchContextParameters: mergedLaunchContextParameters,
+        }),
+        [
+            questionnaireLoader,
+            initialQuestionnaireResponse,
+            serviceProvider,
+            sdcServiceProvider,
+            fhirService,
+            autosave,
+            mergedLaunchContextParameters,
+        ],
+    );
+
+    const sdcServices = useMemo(
+        () => getSdcServices(propsWithClinicalContext, sdcServiceProviderFromContext),
+        [propsWithClinicalContext, sdcServiceProviderFromContext],
+    );
 
     const [response] = useService<QuestionnaireResponseFormData>(async () => {
-        const r = await loadQuestionnaireResponseFormData(props, sdcServiceProviderFromContext);
+        const r = await loadQuestionnaireResponseFormData(propsWithClinicalContext, sdcServiceProviderFromContext);
 
         return mapSuccess(r, ({ context, formValues }) => {
             const result: QuestionnaireResponseFormData = {
@@ -404,28 +449,37 @@ export function useQuestionnaireResponseFormData(props: QuestionnaireResponseFor
             };
             return result;
         });
-    }, [props, ...deps]);
+    }, [propsWithClinicalContext, ...deps]);
 
-    const handleUpdate = async (
-        qrFormData: QuestionnaireResponseFormData,
-    ): Promise<RemoteDataResult<QuestionnaireResponseFormUpdateResponse>> => {
-        const draft = fromQuestionnaireResponseFormData(qrFormData, {
-            status: 'in-progress',
-            authored: formatFHIRDateTime(moment()),
-        });
+    const handleUpdate = useCallback(
+        async (
+            qrFormData: QuestionnaireResponseFormData,
+        ): Promise<RemoteDataResult<QuestionnaireResponseFormUpdateResponse>> => {
+            const draft = fromQuestionnaireResponseFormData(qrFormData, {
+                status: 'in-progress',
+                authored: formatFHIRDateTime(moment()),
+            });
 
-        const responseRemoteData = await sdcServices.saveInProgressQuestionnaireResponse(draft.questionnaireResponse);
+            return sdcServices
+                .saveInProgressQuestionnaireResponse(draft.questionnaireResponse)
+                .then((responseRemoteData) =>
+                    mapSuccess(responseRemoteData, (questionnaireResponse) => ({
+                        questionnaireResponse,
+                        extracted: false,
+                    })),
+                );
+        },
+        [sdcServices],
+    );
 
-        return mapSuccess(responseRemoteData, (questionnaireResponse) => ({
-            questionnaireResponse,
-            extracted: false,
-        }));
-    };
-
-    const handleSave = async (
-        qrFormData: QuestionnaireResponseFormData,
-    ): Promise<RemoteDataResult<QuestionnaireResponseFormSaveResponse, QuestionnaireResponseFormSaveResponseFailure>> =>
-        handleFormDataSave({ ...props, formData: qrFormData }, sdcServiceProviderFromContext);
+    const handleSave = useCallback(
+        async (
+            qrFormData: QuestionnaireResponseFormData,
+        ): Promise<
+            RemoteDataResult<QuestionnaireResponseFormSaveResponse, QuestionnaireResponseFormSaveResponseFailure>
+        > => handleFormDataSave({ ...propsWithClinicalContext, formData: qrFormData }, sdcServiceProviderFromContext),
+        [propsWithClinicalContext, sdcServiceProviderFromContext],
+    );
 
     return { response, handleSave, handleUpdate };
 }
