@@ -1,5 +1,7 @@
 import { ParametersParameter } from 'fhir/r4b';
 
+export { getFirstParameter, getParameters } from './launch-context-parameters';
+
 export function appendLaunchContextParameters(
     base: ParametersParameter[],
     additions: ParametersParameter[],

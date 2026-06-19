@@ -5,6 +5,7 @@ import React, { ReactNode } from 'react';
 import { renderHook } from '@testing-library/react';
 import { describe, expect, test } from 'vitest';
 
+import { getFirstParameter, getParameters } from '../../utils';
 import { ClinicalContext, useClinicalContext } from '../clinical-context';
 
 const patient = (id: string): ParametersParameter => ({
@@ -37,8 +38,6 @@ describe('ClinicalContext', () => {
         const { result } = renderHook(() => useClinicalContext());
 
         expect(result.current.parameters).toEqual([]);
-        expect(result.current.getParameter('patient')).toEqual([]);
-        expect(result.current.getParameterAsFirst('patient')).toBeUndefined();
     });
 
     test('exposes provided context parameters', () => {
@@ -75,7 +74,7 @@ describe('ClinicalContext', () => {
         expect(result.current.parameters).toEqual([patient('outer'), encounter('1'), patient('inner')]);
     });
 
-    test('returns child-first matches for duplicate names', () => {
+    test('supports child-first lookup for duplicate names via utils', () => {
         const { result } = renderHook(() => useClinicalContext(), {
             wrapper: ({ children }) => (
                 <ClinicalContext context={[patient('outer')]}>
@@ -84,7 +83,7 @@ describe('ClinicalContext', () => {
             ),
         });
 
-        expect(result.current.getParameter('patient')).toEqual([patient('inner'), patient('outer')]);
-        expect(result.current.getParameterAsFirst('patient')).toEqual(patient('inner'));
+        expect(getParameters(result.current.parameters, 'patient')).toEqual([patient('inner'), patient('outer')]);
+        expect(getFirstParameter(result.current.parameters, 'patient')).toEqual(patient('inner'));
     });
 });

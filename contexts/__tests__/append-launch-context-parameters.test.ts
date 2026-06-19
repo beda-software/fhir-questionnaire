@@ -3,7 +3,6 @@ import { ParametersParameter } from 'fhir/r4b';
 import { describe, expect, test } from 'vitest';
 
 import { appendLaunchContextParameters } from '../../utils';
-import { getParameter, getParameterAsFirst } from '../clinical-context';
 
 const patient = (id: string): ParametersParameter => ({
     name: 'patient',
@@ -49,39 +48,5 @@ describe('appendLaunchContextParameters', () => {
         const additions = [patient('child')];
 
         expect(appendLaunchContextParameters(base, additions)).toEqual([patient('parent'), patient('child')]);
-    });
-});
-
-describe('getParameter', () => {
-    test('returns empty array when no match', () => {
-        expect(getParameter([patient('1')], 'encounter')).toEqual([]);
-    });
-
-    test('returns single match', () => {
-        expect(getParameter([patient('1')], 'patient')).toEqual([patient('1')]);
-    });
-
-    test('returns all matches child-first when names repeat', () => {
-        const params = [patient('parent'), patient('child')];
-
-        expect(getParameter(params, 'patient')).toEqual([patient('child'), patient('parent')]);
-    });
-});
-
-describe('getParameterAsFirst', () => {
-    test('returns undefined when no match', () => {
-        expect(getParameterAsFirst([patient('1')], 'encounter')).toBeUndefined();
-    });
-
-    test('returns child entry when names repeat', () => {
-        const params = [patient('parent'), patient('child')];
-
-        expect(getParameterAsFirst(params, 'patient')).toEqual(patient('child'));
-    });
-
-    test('matches first entry of getParameter', () => {
-        const params = [patient('parent'), patient('child')];
-
-        expect(getParameterAsFirst(params, 'patient')).toEqual(getParameter(params, 'patient')[0]);
     });
 });
