@@ -62,7 +62,7 @@ describe('ClinicalContext', () => {
         expect(result.current.parameters).toStrictEqual(outer);
     });
 
-    test('appends nested context in storage order', () => {
+    test('inner context overwrites outer params with matching name by default', () => {
         const { result } = renderHook(() => useClinicalContext(), {
             wrapper: ({ children }) => (
                 <ClinicalContext context={[patient('outer'), encounter('1')]}>
@@ -71,10 +71,10 @@ describe('ClinicalContext', () => {
             ),
         });
 
-        expect(result.current.parameters).toEqual([patient('outer'), encounter('1'), patient('inner')]);
+        expect(result.current.parameters).toEqual([encounter('1'), patient('inner')]);
     });
 
-    test('supports parent-first lookup for duplicate names via utils', () => {
+    test('inner context overwrites outer param with matching name, inner wins lookup', () => {
         const { result } = renderHook(() => useClinicalContext(), {
             wrapper: ({ children }) => (
                 <ClinicalContext context={[patient('outer')]}>
@@ -83,7 +83,21 @@ describe('ClinicalContext', () => {
             ),
         });
 
-        expect(getParameters(result.current.parameters, 'patient')).toEqual([patient('outer'), patient('inner')]);
-        expect(getFirstParameter(result.current.parameters, 'patient')).toEqual(patient('outer'));
+        expect(getParameters(result.current.parameters, 'patient')).toEqual([patient('inner')]);
+        expect(getFirstParameter(result.current.parameters, 'patient')).toEqual(patient('inner'));
+    });
+
+    test('appends nested context in storage order when append=true', () => {
+        const { result } = renderHook(() => useClinicalContext(), {
+            wrapper: ({ children }) => (
+                <ClinicalContext context={[patient('outer'), encounter('1')]}>
+                    <ClinicalContext append context={[patient('inner')]}>
+                        {children}
+                    </ClinicalContext>
+                </ClinicalContext>
+            ),
+        });
+
+        expect(result.current.parameters).toEqual([patient('outer'), encounter('1'), patient('inner')]);
     });
 });

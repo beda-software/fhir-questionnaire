@@ -1,11 +1,7 @@
 import { cleanObject, formatFHIRDateTime, initServices, useService, uuid4 } from '@beda.software/fhir-react';
 import { RemoteDataResult, isFailure, isSuccess, mapSuccess, success, failure } from '@beda.software/remote-data';
-import {
-    SdcServiceProvider,
-    SdcServiceProviderContext,
-    useClinicalContext,
-} from '../../contexts';
-import { appendLaunchContextParameters } from '../../utils';
+import { SdcServiceProvider, SdcServiceProviderContext, useClinicalContext } from '../../contexts';
+import { mergeLaunchContextParameters } from '../../utils';
 import {
     Bundle,
     Parameters,
@@ -410,7 +406,7 @@ export function useQuestionnaireResponseFormData(props: QuestionnaireResponseFor
     } = props;
 
     const mergedLaunchContextParameters = useMemo(() => {
-        return appendLaunchContextParameters(clinicalParams, propsLaunchParams ?? []);
+        return mergeLaunchContextParameters(clinicalParams, propsLaunchParams ?? []);
     }, [clinicalParams, propsLaunchParams]);
 
     const propsWithClinicalContext = useMemo(
