@@ -2,7 +2,7 @@ import { ParametersParameter } from 'fhir/r4b';
 
 import { describe, expect, test } from 'vitest';
 
-import { getFirstParameter, getParameters } from '../launch-context-parameters';
+import { getFirstParameter, getArrayParameters } from '../launch-context-parameters';
 
 const patient = (id: string): ParametersParameter => ({
     name: 'patient',
@@ -11,17 +11,17 @@ const patient = (id: string): ParametersParameter => ({
 
 describe('getParameters', () => {
     test('returns empty array when no match', () => {
-        expect(getParameters([patient('1')], 'encounter')).toEqual([]);
+        expect(getArrayParameters([patient('1')], 'encounter')).toEqual([]);
     });
 
     test('returns single match', () => {
-        expect(getParameters([patient('1')], 'patient')).toEqual([patient('1')]);
+        expect(getArrayParameters([patient('1')], 'patient')).toEqual([patient('1')]);
     });
 
     test('returns all matches child-first when names repeat', () => {
-        const params = [patient('parent'), patient('child')];
+        const params = [patient('outer'), patient('inner')];
 
-        expect(getParameters(params, 'patient')).toEqual([patient('child'), patient('parent')]);
+        expect(getArrayParameters(params, 'patient')).toEqual([patient('outer'), patient('inner')]);
     });
 });
 
@@ -30,15 +30,15 @@ describe('getFirstParameter', () => {
         expect(getFirstParameter([patient('1')], 'encounter')).toBeUndefined();
     });
 
-    test('returns child entry when names repeat', () => {
-        const params = [patient('parent'), patient('child')];
+    test('returns outer entry when names repeat', () => {
+        const params = [patient('outer'), patient('inner')];
 
-        expect(getFirstParameter(params, 'patient')).toEqual(patient('child'));
+        expect(getFirstParameter(params, 'patient')).toEqual(patient('outer'));
     });
 
-    test('matches first entry of getParameters', () => {
+    test('matches first entry of getArrayParameters', () => {
         const params = [patient('parent'), patient('child')];
 
-        expect(getFirstParameter(params, 'patient')).toEqual(getParameters(params, 'patient')[0]);
+        expect(getFirstParameter(params, 'patient')).toEqual(getArrayParameters(params, 'patient')[0]);
     });
 });

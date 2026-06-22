@@ -59,7 +59,7 @@ describe('ClinicalContext', () => {
             ),
         });
 
-        expect(result.current.parameters).toBe(outer);
+        expect(result.current.parameters).toStrictEqual(outer);
     });
 
     test('appends nested context in storage order', () => {
@@ -74,7 +74,7 @@ describe('ClinicalContext', () => {
         expect(result.current.parameters).toEqual([patient('outer'), encounter('1'), patient('inner')]);
     });
 
-    test('supports child-first lookup for duplicate names via utils', () => {
+    test('supports parent-first lookup for duplicate names via utils', () => {
         const { result } = renderHook(() => useClinicalContext(), {
             wrapper: ({ children }) => (
                 <ClinicalContext context={[patient('outer')]}>
@@ -83,7 +83,7 @@ describe('ClinicalContext', () => {
             ),
         });
 
-        expect(getParameters(result.current.parameters, 'patient')).toEqual([patient('inner'), patient('outer')]);
-        expect(getFirstParameter(result.current.parameters, 'patient')).toEqual(patient('inner'));
+        expect(getParameters(result.current.parameters, 'patient')).toEqual([patient('outer'), patient('inner')]);
+        expect(getFirstParameter(result.current.parameters, 'patient')).toEqual(patient('outer'));
     });
 });

@@ -9,8 +9,8 @@ const matchParametersByName = compileAsArray<ParametersResource, ParametersParam
     fhirpathR4Model,
 );
 
-const getLastMatchingParameter = compileAsFirst<ParametersResource, ParametersParameter>(
-    'parameter.where(name = %name).last()',
+const getFirstMatchingParameter = compileAsFirst<ParametersResource, ParametersParameter>(
+    'parameter.where(name = %name).first()',
     fhirpathR4Model,
 );
 
@@ -18,10 +18,10 @@ function wrapAsParameters(params: ParametersParameter[]): ParametersResource {
     return { resourceType: 'Parameters', parameter: params };
 }
 
-export function getParameters(params: ParametersParameter[], name: string): ParametersParameter[] {
-    return [...matchParametersByName(wrapAsParameters(params), { name })].reverse();
+export function getArrayParameters(params: ParametersParameter[], name: string): ParametersParameter[] {
+    return [...matchParametersByName(wrapAsParameters(params), { name })];
 }
 
 export function getFirstParameter(params: ParametersParameter[], name: string): ParametersParameter | undefined {
-    return getLastMatchingParameter(wrapAsParameters(params), { name });
+    return getFirstMatchingParameter(wrapAsParameters(params), { name });
 }

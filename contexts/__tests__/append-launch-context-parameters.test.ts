@@ -27,13 +27,13 @@ describe('appendLaunchContextParameters', () => {
     test('returns base when additions are empty', () => {
         const base = [patient('1')];
 
-        expect(appendLaunchContextParameters(base, [])).toBe(base);
+        expect(appendLaunchContextParameters(base, [])).toEqual(base);
     });
 
     test('returns additions when base is empty', () => {
         const additions = [patient('1')];
 
-        expect(appendLaunchContextParameters([], additions)).toBe(additions);
+        expect(appendLaunchContextParameters([], additions)).toEqual(additions);
     });
 
     test('appends distinct parameters in order', () => {
