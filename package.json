@@ -8,27 +8,35 @@
     "types": "./dist/index.d.ts",
     "exports": {
         ".": {
-            "types": "./index.ts",
-            "react-native": "./index.ts",
-            "browser": "./index.ts",
+            "react-native": {
+                "types": "./index.ts",
+                "default": "./index.ts"
+            },
+            "types": "./dist/index.d.ts",
             "import": "./dist/index.js"
         },
         "./components": {
-            "types": "./components/index.ts",
-            "react-native": "./components/index.ts",
-            "browser": "./components/index.ts",
+            "react-native": {
+                "types": "./components/index.ts",
+                "default": "./components/index.ts"
+            },
+            "types": "./dist/components/index.d.ts",
             "import": "./dist/components/index.js"
         },
         "./contexts": {
-            "types": "./contexts/index.ts",
-            "react-native": "./contexts/index.ts",
-            "browser": "./contexts/index.ts",
+            "react-native": {
+                "types": "./contexts/index.ts",
+                "default": "./contexts/index.ts"
+            },
+            "types": "./dist/contexts/index.d.ts",
             "import": "./dist/contexts/index.js"
         },
         "./services": {
-            "types": "./services/index.ts",
-            "react-native": "./services/index.ts",
-            "browser": "./services/index.ts",
+            "react-native": {
+                "types": "./services/index.ts",
+                "default": "./services/index.ts"
+            },
+            "types": "./dist/services/index.d.ts",
             "import": "./dist/services/index.js"
         },
         "./package.json": "./package.json"
