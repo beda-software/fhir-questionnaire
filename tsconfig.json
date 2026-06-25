@@ -26,6 +26,6 @@
         "resolveJsonModule": true,
         "esModuleInterop": true
     },
-    "include": ["index.ts", "components/**/*", "contexts/**/*", "services/**/*"],
+    "include": ["index.ts", "components/**/*", "contexts/**/*", "services/**/*", "utils/**/*"],
     "exclude": ["dist", "node_modules", "**/*.test.ts", "**/*.test.tsx", "**/__tests__/**"]
 }

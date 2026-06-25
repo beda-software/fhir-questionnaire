@@ -6,6 +6,7 @@ import { FormItems } from 'sdc-qrf';
 import { Parameters, Questionnaire, QuestionnaireResponse } from 'fhir/r4b';
 
 export * from './valueset-expand';
+export * from './clinical-context';
 
 interface BaseQuestionnaireResponseFormPropsContextProps extends Partial<BaseQuestionnaireResponseFormProps> {
     submitting: boolean;
