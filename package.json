@@ -2,26 +2,42 @@
     "name": "@beda.software/fhir-questionnaire",
     "version": "0.1.0-alpha.12",
     "type": "module",
-    "main": "./index.ts",
+    "main": "./dist/index.js",
     "react-native": "./index.ts",
     "source": "./index.ts",
-    "types": "./index.ts",
+    "types": "./dist/index.d.ts",
     "exports": {
         ".": {
-            "types": "./index.ts",
-            "default": "./index.ts"
+            "react-native": {
+                "types": "./index.ts",
+                "default": "./index.ts"
+            },
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js"
         },
         "./components": {
-            "types": "./components/index.ts",
-            "default": "./components/index.ts"
+            "react-native": {
+                "types": "./components/index.ts",
+                "default": "./components/index.ts"
+            },
+            "types": "./dist/components/index.d.ts",
+            "import": "./dist/components/index.js"
         },
         "./contexts": {
-            "types": "./contexts/index.ts",
-            "default": "./contexts/index.ts"
+            "react-native": {
+                "types": "./contexts/index.ts",
+                "default": "./contexts/index.ts"
+            },
+            "types": "./dist/contexts/index.d.ts",
+            "import": "./dist/contexts/index.js"
         },
         "./services": {
-            "types": "./services/index.ts",
-            "default": "./services/index.ts"
+            "react-native": {
+                "types": "./services/index.ts",
+                "default": "./services/index.ts"
+            },
+            "types": "./dist/services/index.d.ts",
+            "import": "./dist/services/index.js"
         },
         "./package.json": "./package.json"
     },
@@ -44,28 +60,7 @@
         "typescript": "*"
     },
     "publishConfig": {
-        "access": "public",
-        "main": "./dist/index.js",
-        "types": "./dist/index.d.ts",
-        "exports": {
-            ".": {
-                "types": "./dist/index.d.ts",
-                "import": "./dist/index.js"
-            },
-            "./components": {
-                "types": "./dist/components/index.d.ts",
-                "import": "./dist/components/index.js"
-            },
-            "./contexts": {
-                "types": "./dist/contexts/index.d.ts",
-                "import": "./dist/contexts/index.js"
-            },
-            "./services": {
-                "types": "./dist/services/index.d.ts",
-                "import": "./dist/services/index.js"
-            },
-            "./package.json": "./package.json"
-        }
+        "access": "public"
     },
     "scripts": {
         "test": "vitest",
