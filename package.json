@@ -3,28 +3,42 @@
     "version": "0.1.0-alpha.10",
     "type": "module",
     "main": "./dist/index.js",
+    "react-native": "./index.ts",
+    "source": "./index.ts",
     "types": "./dist/index.d.ts",
     "exports": {
         ".": {
-            "types": "./dist/index.d.ts",
+            "types": "./index.ts",
+            "react-native": "./index.ts",
+            "browser": "./index.ts",
             "import": "./dist/index.js"
         },
         "./components": {
-            "types": "./dist/components/index.d.ts",
+            "types": "./components/index.ts",
+            "react-native": "./components/index.ts",
+            "browser": "./components/index.ts",
             "import": "./dist/components/index.js"
         },
         "./contexts": {
-            "types": "./dist/contexts/index.d.ts",
+            "types": "./contexts/index.ts",
+            "react-native": "./contexts/index.ts",
+            "browser": "./contexts/index.ts",
             "import": "./dist/contexts/index.js"
         },
         "./services": {
-            "types": "./dist/services/index.d.ts",
+            "types": "./services/index.ts",
+            "react-native": "./services/index.ts",
+            "browser": "./services/index.ts",
             "import": "./dist/services/index.js"
         },
         "./package.json": "./package.json"
     },
     "files": [
         "dist",
+        "index.ts",
+        "components",
+        "contexts",
+        "services",
         "README.md",
         "components/locale"
     ],
