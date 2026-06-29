@@ -12,11 +12,19 @@
                 "types": "./index.ts",
                 "default": "./index.ts"
             },
+            "browser": {
+                "types": "./index.ts",
+                "default": "./index.ts"
+            },
             "types": "./dist/index.d.ts",
             "import": "./dist/index.js"
         },
         "./components": {
             "react-native": {
+                "types": "./components/index.ts",
+                "default": "./components/index.ts"
+            },
+            "browser": {
                 "types": "./components/index.ts",
                 "default": "./components/index.ts"
             },
@@ -28,11 +36,19 @@
                 "types": "./contexts/index.ts",
                 "default": "./contexts/index.ts"
             },
+            "browser": {
+                "types": "./contexts/index.ts",
+                "default": "./contexts/index.ts"
+            },
             "types": "./dist/contexts/index.d.ts",
             "import": "./dist/contexts/index.js"
         },
         "./services": {
             "react-native": {
+                "types": "./services/index.ts",
+                "default": "./services/index.ts"
+            },
+            "browser": {
                 "types": "./services/index.ts",
                 "default": "./services/index.ts"
             },
