@@ -22,7 +22,10 @@ import {
     calcInitialContext,
     removeDisabledAnswers,
     QuestionnaireResponseFormData,
+    translateQuestionnaire,
 } from 'sdc-qrf';
+
+import { ASSEMBLED_FROM_EXTENSION_URL, getExtensionCanonical } from './utils';
 
 export type { QuestionnaireResponseFormData } from 'sdc-qrf';
 
@@ -51,6 +54,7 @@ export interface QuestionnaireResponseFormProps {
     sdcServiceProvider?: SdcServiceProvider;
     fhirService?: ReturnType<typeof initServices>['service'];
     autosave?: boolean;
+    language?: string;
 }
 
 export function getSdcServices(
@@ -273,14 +277,16 @@ export async function loadQuestionnaireResponseFormData(
         return questionnaireRemoteData;
     }
 
-    const fceQuestionnaire = toFirstClassExtension(questionnaireRemoteData.data);
+    const fhirQuestionnaire = translateQuestionnaire(questionnaireRemoteData.data, props.language ?? 'en');
 
-    const questionnaireId = fceQuestionnaire.id ?? fceQuestionnaire.assembledFrom;
+    const questionnaireId =
+        fhirQuestionnaire.id ??
+        getExtensionCanonical(fhirQuestionnaire.extension, ASSEMBLED_FROM_EXTENSION_URL);
 
     const params: Parameters = {
         resourceType: 'Parameters',
         parameter: [
-            { name: 'questionnaire', resource: questionnaireRemoteData.data },
+            { name: 'questionnaire', resource: fhirQuestionnaire },
             ...(launchContextParameters || []),
         ],
     };
@@ -305,7 +311,7 @@ export async function loadQuestionnaireResponseFormData(
     }
 
     return mapSuccess(populateRemoteData, (populatedQR) => {
-        const questionnaire = questionnaireRemoteData.data;
+        const questionnaire = fhirQuestionnaire;
         const questionnaireResponse = populatedQR;
 
         return toQuestionnaireResponseFormData(questionnaire, questionnaireResponse, launchContextParameters);
