@@ -408,6 +408,7 @@ export function useQuestionnaireResponseFormData(props: QuestionnaireResponseFor
         sdcServiceProvider,
         fhirService,
         autosave,
+        language,
         launchContextParameters: propsLaunchParams,
     } = props;
 
@@ -423,6 +424,7 @@ export function useQuestionnaireResponseFormData(props: QuestionnaireResponseFor
             sdcServiceProvider,
             fhirService,
             autosave,
+            language,
             launchContextParameters: mergedLaunchContextParameters,
         }),
         [
@@ -432,6 +434,7 @@ export function useQuestionnaireResponseFormData(props: QuestionnaireResponseFor
             sdcServiceProvider,
             fhirService,
             autosave,
+            language,
             mergedLaunchContextParameters,
         ],
     );
