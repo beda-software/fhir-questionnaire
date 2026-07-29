@@ -16,7 +16,6 @@ import { useCallback, useContext, useMemo } from 'react';
 
 import {
     toFirstClassExtension,
-    fromFirstClassExtension,
     mapFormToResponse,
     mapResponseToForm,
     calcInitialContext,
@@ -230,7 +229,7 @@ export function fromQuestionnaireResponseFormData(
     };
 
     return {
-        questionnaire: fromFirstClassExtension(questionnaire),
+        questionnaire,
         questionnaireResponse: finalFHIRQuestionnaireResponse,
         launchContextParameters: formData.context.launchContextParameters,
     };
