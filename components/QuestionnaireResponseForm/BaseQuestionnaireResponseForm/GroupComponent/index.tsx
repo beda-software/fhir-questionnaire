@@ -1,6 +1,7 @@
 import { GroupWrapperProps } from '../';
-import { GroupItemProps as GroupItemPropsBase, QuestionItemComponent, FormItems, FCEQuestionnaireItem, getEnabledQuestions } from 'sdc-qrf';
-import { ComponentType, PropsWithChildren, useCallback } from 'react';
+import { RootItemContext } from '../context';
+import { GroupItemProps as GroupItemPropsBase, FormItems, QuestionItems, getItemKey, populateItemKey } from 'sdc-qrf';
+import { ComponentType, PropsWithChildren, useCallback, useContext } from 'react';
 import { useFormContext } from 'react-hook-form';
 import _ from 'lodash';
 
@@ -11,51 +12,38 @@ export type GroupItemProps = PropsWithChildren<GroupItemPropsBase> & {
 
 export type GroupItemComponent = ComponentType<GroupItemProps>;
 
-type Props = PropsWithChildren<{
+type Props = {
     itemProps: GroupItemProps;
     Control: GroupItemComponent;
-    questionItemComponents: { [x: string]: QuestionItemComponent };
-    // TODO: get rid of passing itemControl* - use them from context
-    itemControlQuestionItemComponents: { [x: string]: QuestionItemComponent };
-    itemControlGroupItemComponents: { [x: string]: GroupItemComponent };
     GroupWrapper?: ComponentType<GroupWrapperProps>;
     buildValue?: (existingItems: FormItems[]) => FormItems[];
-}>;
+};
 
 function defaultBuildValue(existingItems: FormItems[]): FormItems[] {
     return [...existingItems, {}];
 }
 
 export function GroupComponent(props: Props) {
-    const {
-        itemProps,
-        Control,
-        GroupWrapper,
-        questionItemComponents,
-        itemControlQuestionItemComponents,
-        itemControlGroupItemComponents,
-        buildValue = defaultBuildValue,
-    } = props;
+    const { itemProps, Control, GroupWrapper, buildValue = defaultBuildValue } = props;
 
     if (!Control) return null;
 
-    const GroupWidgetComponent = Control;
     const { questionItem, context, parentPath } = itemProps;
     const { repeats, linkId } = questionItem;
     const fieldName = [...parentPath, linkId];
 
+    const rootContext = useContext(RootItemContext);
     const { getValues, setValue } = useFormContext();
-    const formValues = getValues();
-    const value = _.get(formValues, fieldName);
+    const value = _.get(getValues(), fieldName);
 
-    const items: FormItems[] = value?.items.length ? value.items : [{}];
+    const items: FormItems[] = value?.items?.length ? value.items : [{}];
 
     const updateItems = (updatedItems: FormItems[]) => {
         setValue([...fieldName, 'items'].join('.'), updatedItems);
     };
 
     const addItem = useCallback(() => {
-        const updatedItems = buildValue(items);
+        const updatedItems = buildValue(items).map((item) => populateItemKey(item) as FormItems);
         updateItems(updatedItems);
     }, [items, buildValue]);
 
@@ -67,69 +55,30 @@ export function GroupComponent(props: Props) {
         [items],
     );
 
-    const renderQuestionItem = (i: FCEQuestionnaireItem, index: number) => {
-        const updatedParentPath = repeats
-            ? [...parentPath, linkId, 'items', String(index)]
-            : [...parentPath, linkId, 'items'];
+    const instanceContext = (index: number) => (context[index] ?? context[0] ?? rootContext)!;
 
-        const code = i.itemControl?.coding?.[0]?.code;
-        const Component =
-            code && code in itemControlQuestionItemComponents
-                ? itemControlQuestionItemComponents[code]
-                : questionItemComponents[i.type];
-
-        if (i.type === 'group') {
-            return (
-                <GroupComponent
-                    {...props}
-                    itemProps={{ ...itemProps, questionItem: i, parentPath: updatedParentPath }}
-                    key={`${i.linkId}-${index}`}
+    // Children go through sdc-qrf's QuestionItems/QuestionItem — the only place
+    // calculatedExpression, cqfExpressions and item variables are evaluated.
+    const renderGroupContent = () => (
+        <Control {...itemProps} addItem={addItem} removeItem={removeItem}>
+            {repeats ? (
+                items.map((item, index) => (
+                    <QuestionItems
+                        key={getItemKey(item) ?? index}
+                        questionItems={questionItem.item ?? []}
+                        parentPath={[...fieldName, 'items', String(index)]}
+                        context={instanceContext(index)}
+                    />
+                ))
+            ) : (
+                <QuestionItems
+                    questionItems={questionItem.item ?? []}
+                    parentPath={[...fieldName, 'items']}
+                    context={instanceContext(0)}
                 />
-            );
-        }
-
-        if (!Component) {
-            console.error(`Item type ${i.type} is not supported`);
-            return null;
-        }
-
-        return (
-            <Component
-                key={`${i.linkId}-${index}`}
-                context={context[0]!}
-                parentPath={updatedParentPath}
-                questionItem={i}
-            />
-        );
-    };
-
-    const renderGroupContent = () => {
-        const enabledItems = questionItem.item ? getEnabledQuestions(
-            questionItem.item,
-            [...parentPath, linkId, 'items'],
-            formValues,
-            context[0]!
-        ) : [];
-
-        const code = questionItem.itemControl?.coding?.[0]?.code;
-        const Component =
-            code && code in itemControlGroupItemComponents
-                ? itemControlGroupItemComponents[code]
-                : GroupWidgetComponent;
-
-        if (!Component) {
-            console.error(`Group item type ${questionItem.type} is not supported`);
-            return null;
-        }
-
-        return (
-            <Component {...itemProps} addItem={addItem} removeItem={removeItem}>
-                {items.map((_, index: number) =>
-                    enabledItems.map((i) => renderQuestionItem(i, index))
-                )}
-            </Component>
-        );
-    };
+            )}
+        </Control>
+    );
 
     return GroupWrapper ? (
         <GroupWrapper item={itemProps} control={Control}>

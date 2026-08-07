@@ -22,6 +22,7 @@ import {
     useQuestionnaireResponseFormContext,
     useVariablesResolver,
 } from 'sdc-qrf';
+import { RootItemContext } from './context';
 import { GroupComponent, GroupItemComponent, GroupItemProps } from './GroupComponent';
 
 import { CustomYupTestsMap, questionnaireToValidationSchema } from './utils';
@@ -189,58 +190,53 @@ export function BaseQuestionnaireResponseForm(props: BaseQuestionnaireResponseFo
 
     const groupItemComponent = useMemo(
         () => (itemProps: GroupItemProps) => (
-            <GroupComponent
-                itemProps={itemProps}
-                Control={props.groupItemComponent}
-                GroupWrapper={GroupWrapper}
-                questionItemComponents={questionItemComponents}
-                itemControlQuestionItemComponents={itemControlQuestionItemComponents}
-                itemControlGroupItemComponents={itemControlGroupItemComponents}
-            />
+            <GroupComponent itemProps={itemProps} Control={props.groupItemComponent} GroupWrapper={GroupWrapper} />
         ),
         [GroupWrapper, props.groupItemComponent],
     );
 
     return (
         <FormProvider {...form}>
-            <QuestionnaireResponseFormProvider
-                formValues={formValues}
-                setFormValues={(values, fieldPath, value) => {
-                    form.setValue(fieldPath.join('.'), value);
-                }}
-                fhirService={fhirService}
-                groupItemComponent={groupItemComponent}
-                itemControlGroupItemComponents={itemControlGroupItemComponents}
-                questionItemComponents={questionItemComponents}
-                itemControlQuestionItemComponents={itemControlQuestionItemComponents}
-                readOnly={readOnly}
-            >
-                <FormWrapper
-                    handleSubmit={form.handleSubmit(async () => {
-                        const currentFormValues = form.getValues();
-                        await onSubmit?.({ ...formData, formValues: currentFormValues });
-                    })}
-                    items={useMemo(() => {
-                        const parentPath = Array.of<string>();
-                        return getEnabledQuestions(
-                            formData.context.fceQuestionnaire.item!,
-                            parentPath,
-                            formValues,
-                            initialContext,
-                        ).map((item) => {
-                            return (
-                                <QuestionItem
-                                    key={item.linkId}
-                                    questionItem={item}
-                                    context={initialContext}
-                                    parentPath={parentPath}
-                                />
-                            );
-                        });
-                    }, [formData.context.fceQuestionnaire.item, formValues, initialContext])}
-                    formData={formData}
-                />
-            </QuestionnaireResponseFormProvider>
+            <RootItemContext.Provider value={initialContext}>
+                <QuestionnaireResponseFormProvider
+                    formValues={formValues}
+                    setFormValues={(values, fieldPath, value) => {
+                        form.setValue(fieldPath.join('.'), value);
+                    }}
+                    fhirService={fhirService}
+                    groupItemComponent={groupItemComponent}
+                    itemControlGroupItemComponents={itemControlGroupItemComponents}
+                    questionItemComponents={questionItemComponents}
+                    itemControlQuestionItemComponents={itemControlQuestionItemComponents}
+                    readOnly={readOnly}
+                >
+                    <FormWrapper
+                        handleSubmit={form.handleSubmit(async () => {
+                            const currentFormValues = form.getValues();
+                            await onSubmit?.({ ...formData, formValues: currentFormValues });
+                        })}
+                        items={useMemo(() => {
+                            const parentPath = Array.of<string>();
+                            return getEnabledQuestions(
+                                formData.context.fceQuestionnaire.item!,
+                                parentPath,
+                                formValues,
+                                initialContext,
+                            ).map((item) => {
+                                return (
+                                    <QuestionItem
+                                        key={item.linkId}
+                                        questionItem={item}
+                                        context={initialContext}
+                                        parentPath={parentPath}
+                                    />
+                                );
+                            });
+                        }, [formData.context.fceQuestionnaire.item, formValues, initialContext])}
+                        formData={formData}
+                    />
+                </QuestionnaireResponseFormProvider>
+            </RootItemContext.Provider>
         </FormProvider>
     );
 }

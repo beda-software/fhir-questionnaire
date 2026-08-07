@@ -4,7 +4,7 @@ import { describe, expect, test, vi } from 'vitest';
 
 import { FCEQuestionnaire, QuestionnaireResponseFormData } from 'sdc-qrf';
 
-import { renderForm } from './render-form';
+import { renderForm, SelfRenderingGroupWidget } from './render-form';
 
 describe('calculatedExpression (top-level item)', () => {
     const fceQuestionnaire: FCEQuestionnaire = {
@@ -236,5 +236,132 @@ describe('calculatedExpression inside a repeatable group', () => {
 
         expect(screen.getByTestId<HTMLInputElement>('meds.items.0.med-name').value).toBe('aspirin');
         expect(screen.getByTestId<HTMLInputElement>('meds.items.1.med-name').value).toBe('ibuprofen');
+    });
+});
+
+describe('calculatedExpression in a calc-only group reading a sibling group', () => {
+    const questionnaire: FCEQuestionnaire = {
+        resourceType: 'Questionnaire',
+        status: 'active',
+        name: 'score-group-calculated',
+        item: [
+            {
+                linkId: 'answers',
+                type: 'group',
+                item: [
+                    { linkId: 'q1', type: 'string' },
+                    { linkId: 'q2', type: 'string' },
+                ],
+            },
+            {
+                linkId: 'results',
+                type: 'group',
+                item: [
+                    {
+                        linkId: 'total-score',
+                        type: 'integer',
+                        readOnly: true,
+                        calculatedExpression: {
+                            language: 'text/fhirpath',
+                            expression:
+                                "%QuestionnaireResponse.item.where(linkId='answers').item.where(linkId='q1' or linkId='q2').answer.valueString.count()",
+                        },
+                    },
+                ],
+            },
+        ],
+    };
+
+    test('computes although the results group has no editable children', async () => {
+        renderForm(questionnaire);
+
+        fireEvent.change(screen.getByTestId<HTMLInputElement>('answers.items.q1'), { target: { value: 'a' } });
+        await waitFor(() => {
+            expect(screen.getByTestId<HTMLInputElement>('results.items.total-score').value).toBe('1');
+        });
+
+        fireEvent.change(screen.getByTestId<HTMLInputElement>('answers.items.q2'), { target: { value: 'b' } });
+        await waitFor(() => {
+            expect(screen.getByTestId<HTMLInputElement>('results.items.total-score').value).toBe('2');
+        });
+    });
+});
+
+describe('calculatedExpression in the blank instance of an empty repeatable group', () => {
+    const questionnaire: FCEQuestionnaire = {
+        resourceType: 'Questionnaire',
+        status: 'active',
+        name: 'empty-repeatable-calculated',
+        item: [
+            { linkId: 'trigger', type: 'string' },
+            {
+                linkId: 'meds',
+                type: 'group',
+                repeats: true,
+                item: [
+                    { linkId: 'med-name', type: 'string' },
+                    {
+                        linkId: 'med-score',
+                        type: 'integer',
+                        readOnly: true,
+                        calculatedExpression: {
+                            language: 'text/fhirpath',
+                            expression: `iif(%QuestionnaireResponse.item.where(linkId='trigger').answer.valueString.first() = '2', 100, {})`,
+                        },
+                    },
+                ],
+            },
+        ],
+    };
+
+    test('renders the unbacked blank instance and still computes', async () => {
+        renderForm(questionnaire);
+
+        expect(screen.getByTestId<HTMLInputElement>('meds.items.0.med-name').value).toBe('');
+
+        fireEvent.change(screen.getByTestId<HTMLInputElement>('trigger'), { target: { value: '2' } });
+        await waitFor(() => {
+            expect(screen.getByTestId<HTMLInputElement>('meds.items.0.med-score').value).toBe('100');
+        });
+    });
+});
+
+describe('calculatedExpression under a group widget that renders QuestionItems itself', () => {
+    const questionnaire: FCEQuestionnaire = {
+        resourceType: 'Questionnaire',
+        status: 'active',
+        name: 'self-rendering-group-calculated',
+        item: [
+            {
+                linkId: 'custom-group',
+                type: 'group',
+                itemControl: { coding: [{ code: 'custom-group-control' }] },
+                item: [
+                    { linkId: 'answer', type: 'string' },
+                    {
+                        linkId: 'echo-score',
+                        type: 'integer',
+                        readOnly: true,
+                        calculatedExpression: {
+                            language: 'text/fhirpath',
+                            expression: `iif(%QuestionnaireResponse.item.where(linkId='custom-group').item.where(linkId='answer').answer.valueString.first() = '2', 100, {})`,
+                        },
+                    },
+                ],
+            },
+        ],
+    };
+
+    test('computes inside the self-rendering group', async () => {
+        renderForm(questionnaire, {
+            itemControlGroupItemComponents: { 'custom-group-control': SelfRenderingGroupWidget },
+        });
+
+        fireEvent.change(screen.getByTestId<HTMLInputElement>('custom-group.items.answer'), {
+            target: { value: '2' },
+        });
+        await waitFor(() => {
+            expect(screen.getByTestId<HTMLInputElement>('custom-group.items.echo-score').value).toBe('100');
+        });
     });
 });
