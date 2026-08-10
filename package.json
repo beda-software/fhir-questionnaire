@@ -1,6 +1,6 @@
 {
     "name": "@beda.software/fhir-questionnaire",
-    "version": "0.1.0-alpha.16",
+    "version": "0.1.0-alpha.17",
     "type": "module",
     "main": "./dist/index.js",
     "react-native": "./index.ts",
