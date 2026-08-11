@@ -1,6 +1,4 @@
 import { render } from '@testing-library/react';
-import _ from 'lodash';
-import { useFormContext } from 'react-hook-form';
 
 import { RemoteDataResult, success } from '@beda.software/remote-data';
 
@@ -9,6 +7,7 @@ import {
     FormItems,
     fromFirstClassExtension,
     ItemContext,
+    ItemControlGroupItemComponentMapping,
     QuestionItemProps,
     QuestionItems,
 } from 'sdc-qrf';
@@ -53,47 +52,48 @@ function IntegerWidget({ parentPath, questionItem }: QuestionItemProps) {
     );
 }
 
+// Group widget that consumes the pre-built `children` (one element per group instance)
+// instead of instantiating QuestionItems itself.
 function GroupWidget(props: GroupItemProps) {
-    const { questionItem, parentPath, context, addItem, removeItem } = props;
-    const linkId = questionItem.linkId!;
-    const groupPath = [...parentPath, linkId];
-    const childItems = questionItem.item ?? [];
-    const itemContext = (context as unknown as ItemContext[])[0]!;
-    const { getValues } = useFormContext();
-
-    if (!questionItem.repeats) {
-        return (
-            <fieldset data-testid={`group:${groupPath.join('.')}`}>
-                <QuestionItems questionItems={childItems} parentPath={[...groupPath, 'items']} context={itemContext} />
-            </fieldset>
-        );
-    }
-
-    const groupValue = _.get(getValues(), groupPath);
-    const instanceCount = Array.isArray(groupValue?.items) ? groupValue.items.length : 0;
+    const { questionItem, parentPath, children, addItem, removeItem } = props;
+    const groupPath = [...parentPath, questionItem.linkId!];
+    const childrenArray = Array.isArray(children) ? children : [children];
 
     return (
         <fieldset data-testid={`group:${groupPath.join('.')}`}>
-            {Array.from({ length: instanceCount }, (_unused, index) => (
+            {childrenArray.map((child, index) => (
                 <div key={index} data-testid={`instance:${groupPath.join('.')}:${index}`}>
-                    <QuestionItems
-                        questionItems={childItems}
-                        parentPath={[...groupPath, 'items', String(index)]}
-                        context={itemContext}
-                    />
-                    <button
-                        type="button"
-                        data-testid={`remove:${groupPath.join('.')}:${index}`}
-                        onClick={() => removeItem?.(index)}
-                    >
-                        remove {index}
-                    </button>
+                    {child}
+                    {questionItem.repeats && (
+                        <button
+                            type="button"
+                            data-testid={`remove:${groupPath.join('.')}:${index}`}
+                            onClick={() => removeItem?.(index)}
+                        >
+                            remove {index}
+                        </button>
+                    )}
                 </div>
             ))}
-            <button type="button" data-testid={`add:${groupPath.join('.')}`} onClick={() => addItem?.()}>
-                add
-            </button>
+            {questionItem.repeats && (
+                <button type="button" data-testid={`add:${groupPath.join('.')}`} onClick={addItem}>
+                    add
+                </button>
+            )}
         </fieldset>
+    );
+}
+
+// Group widget that ignores `children` and renders its items via sdc-qrf itself.
+export function SelfRenderingGroupWidget(props: GroupItemProps) {
+    const { questionItem, parentPath, context } = props;
+
+    return (
+        <QuestionItems
+            questionItems={questionItem.item ?? []}
+            parentPath={[...parentPath, questionItem.linkId!, 'items']}
+            context={(context as unknown as ItemContext[])[0]!}
+        />
     );
 }
 
@@ -109,6 +109,7 @@ function TestFormWrapper({ handleSubmit, items }: FormWrapperProps) {
 interface RenderOptions {
     onSubmit?: BaseQuestionnaireResponseFormProps['onSubmit'];
     formValues?: FormItems;
+    itemControlGroupItemComponents?: ItemControlGroupItemComponentMapping;
 }
 
 export function renderForm(fceQuestionnaire: FCEQuestionnaire, options: RenderOptions = {}) {
@@ -130,6 +131,7 @@ export function renderForm(fceQuestionnaire: FCEQuestionnaire, options: RenderOp
             fhirService={fhirServiceStub}
             FormWrapper={TestFormWrapper}
             groupItemComponent={GroupWidget}
+            itemControlGroupItemComponents={options.itemControlGroupItemComponents}
             questionItemComponents={{
                 string: StringWidget,
                 integer: IntegerWidget,
