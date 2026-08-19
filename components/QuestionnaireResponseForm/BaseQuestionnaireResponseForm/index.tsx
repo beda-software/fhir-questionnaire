@@ -87,8 +87,8 @@ export function BaseQuestionnaireResponseForm(props: BaseQuestionnaireResponseFo
     const { evaluateFhirpath } = useQuestionnaireResponseFormContext();
 
     const schema: yup.AnyObjectSchema = useMemo(
-        () => questionnaireToValidationSchema(formData.context.questionnaire, customYupTests),
-        [formData.context.questionnaire, customYupTests],
+        () => questionnaireToValidationSchema(formData.context.questionnaire, customYupTests, formData.context),
+        [formData.context, customYupTests],
     );
 
     const form = useForm<FormItems>({

@@ -8,7 +8,11 @@ import {
     getChecker,
     getAnswerValues,
     FormAnswerItems,
+    FormItems,
     toAnswerValue,
+    getEnabledQuestions,
+    calcInitialContext,
+    QuestionnaireResponseFormData,
 } from 'sdc-qrf';
 import { ControllerFieldState, ControllerRenderProps, FieldValues } from 'react-hook-form';
 import { QuestionnaireItemEnableWhen } from 'fhir/r4b';
@@ -46,13 +50,20 @@ function applyCustomYupTestsToItem(
     return schema;
 }
 
-export function questionnaireToValidationSchema(questionnaire: FCEQuestionnaire, customYupTests?: CustomYupTestsMap) {
-    return questionnaireItemsToValidationSchema(questionnaire.item ?? [], customYupTests);
+export function questionnaireToValidationSchema(
+    questionnaire: FCEQuestionnaire,
+    customYupTests?: CustomYupTestsMap,
+    qrfDataContext?: QuestionnaireResponseFormData['context'],
+) {
+    return questionnaireItemsToValidationSchema(questionnaire.item ?? [], customYupTests, qrfDataContext);
 }
 
 export function questionnaireItemsToValidationSchema(
     questionnaireItems: FCEQuestionnaireItem[],
     customYupTests?: CustomYupTestsMap,
+    qrfDataContext?: QuestionnaireResponseFormData['context'],
+    parentPath: string[] = [],
+    warnedEnableWhenExpressionLinkIds: Set<string> = new Set(),
 ) {
     const validationSchema: Record<string, yup.AnySchema> = {};
     if (questionnaireItems.length === 0) {
@@ -136,11 +147,28 @@ export function questionnaireItemsToValidationSchema(
             schema = applyCustomYupTestsToItem(item, schema, customYupTests);
             schema = createSchemaArrayOfValues(yup.object({ boolean: schema }));
         } else if (item.type === 'group' && item.item) {
+            const childParentPath = [...parentPath, item.linkId, 'items'];
             schema = yup
                 .object({
                     items: item.repeats
-                        ? yup.array().of(questionnaireItemsToValidationSchema(item.item, customYupTests))
-                        : questionnaireItemsToValidationSchema(item.item, customYupTests),
+                        ? yup
+                              .array()
+                              .of(
+                                  questionnaireItemsToValidationSchema(
+                                      item.item,
+                                      customYupTests,
+                                      qrfDataContext,
+                                      childParentPath,
+                                      warnedEnableWhenExpressionLinkIds,
+                                  ),
+                              )
+                        : questionnaireItemsToValidationSchema(
+                              item.item,
+                              customYupTests,
+                              qrfDataContext,
+                              childParentPath,
+                              warnedEnableWhenExpressionLinkIds,
+                          ),
                 })
                 .required();
             schema = applyCustomYupTestsToItem(item, schema, customYupTests);
@@ -151,12 +179,24 @@ export function questionnaireItemsToValidationSchema(
 
         schema = item.required ? schema.required() : schema;
 
-        if (item.enableWhen) {
+        if (qrfDataContext && (item.enableWhen || item.enableWhenExpression)) {
+            validationSchema[item.linkId] = yup
+                .mixed()
+                .test(getIsQuestionEnabledTest({ item, itemSchema: schema, parentPath, qrfDataContext }));
+        } else if (item.enableWhen) {
             validationSchema[item.linkId] = getQuestionItemEnableWhenSchema({
                 enableWhenItems: item.enableWhen,
                 enableBehavior: item.enableBehavior,
                 schema,
             });
+        } else if (item.enableWhenExpression) {
+            if (!warnedEnableWhenExpressionLinkIds.has(item.linkId)) {
+                warnedEnableWhenExpressionLinkIds.add(item.linkId);
+                console.warn(
+                    `Item "${item.linkId}" defines enableWhenExpression, but questionnaireToValidationSchema/questionnaireItemsToValidationSchema was called without qrfDataContext. The item will be treated as always enabled for validation purposes.`,
+                );
+            }
+            validationSchema[item.linkId] = schema;
         } else {
             validationSchema[item.linkId] = schema;
         }
@@ -244,6 +284,64 @@ function isEnableWhenItemSucceed(props: IsEnableWhenItemSucceedProps): boolean {
 
     const checker = getChecker(operator);
     return checker(formAnswerValues, answer);
+}
+
+interface GetIsQuestionEnabledTestProps {
+    item: FCEQuestionnaireItem;
+    itemSchema: yup.AnySchema;
+    parentPath: string[];
+    qrfDataContext: QuestionnaireResponseFormData['context'];
+}
+
+// yup builds a dot/bracket path for the field under test, e.g. `group.items[2].leaf`.
+// That's exactly the shape sdc-qrf's getEnabledQuestions expects as parentPath (minus the
+// item's own linkId), including the row index for items nested inside repeating groups -
+// which the statically-threaded `parentPath` cannot know at schema-build time.
+function resolveRuntimeParentPath(yupPath: string | undefined, fallbackParentPath: string[]): string[] {
+    if (!yupPath) {
+        return fallbackParentPath;
+    }
+    const segments = yupPath.match(/[^.[\]]+/g);
+    if (!segments || segments.length === 0) {
+        return fallbackParentPath;
+    }
+    return segments.slice(0, -1);
+}
+
+function getIsQuestionEnabledTest(props: GetIsQuestionEnabledTestProps): yup.TestConfig<any> {
+    const { item, itemSchema, parentPath, qrfDataContext } = props;
+
+    return {
+        name: 'sdc-enable-when',
+        test(value, testContext) {
+            const rootValues = (testContext.from?.[testContext.from.length - 1]?.value ?? {}) as FormItems;
+            const runtimeParentPath = resolveRuntimeParentPath(testContext.path, parentPath);
+            const itemContext = calcInitialContext(qrfDataContext, rootValues);
+
+            // Propagates as-is (not caught) when enableWhenExpression evaluates to a non-boolean -
+            // sdc-qrf throws a plain Error here, which yup surfaces as a schema evaluation failure
+            // rather than a validation result.
+            const enabledItems = getEnabledQuestions([item], runtimeParentPath, rootValues, itemContext);
+
+            if (enabledItems.length === 0) {
+                return true;
+            }
+
+            try {
+                itemSchema.validateSync(value, {
+                    abortEarly: false,
+                    context: testContext.options.context,
+                });
+            } catch (err) {
+                if (err instanceof yup.ValidationError) {
+                    return testContext.createError({ message: err.errors.join(', ') });
+                }
+                throw err;
+            }
+
+            return true;
+        },
+    };
 }
 
 export function getFieldErrorMessage(
