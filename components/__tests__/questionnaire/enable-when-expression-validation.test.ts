@@ -1,19 +1,8 @@
 import { describe, expect, test, vi } from 'vitest';
-import { FCEQuestionnaire, FormItems, fromFirstClassExtension, QuestionnaireResponseFormData } from 'sdc-qrf';
+import { FCEQuestionnaire, FormItems, QuestionnaireResponseFormData } from 'sdc-qrf';
 
 import { questionnaireItemsToValidationSchema } from '../../QuestionnaireResponseForm/BaseQuestionnaireResponseForm/utils';
-
-function buildQrfDataContext(fceQuestionnaire: FCEQuestionnaire): QuestionnaireResponseFormData['context'] {
-    return {
-        fceQuestionnaire,
-        questionnaire: fromFirstClassExtension(fceQuestionnaire),
-        questionnaireResponse: {
-            resourceType: 'QuestionnaireResponse',
-            status: 'in-progress',
-        },
-        launchContextParameters: [],
-    };
-}
+import { buildQrfDataContext } from '../mocks/qrf-data-context';
 
 describe('enableWhenExpression gates validation when context is supplied', () => {
     const fceQuestionnaire: FCEQuestionnaire = {
@@ -150,7 +139,7 @@ describe('Backward-compatible fallback without context', () => {
                     required: true,
                     enableWhenExpression: {
                         language: 'text/fhirpath',
-                        expression: "true",
+                        expression: 'true',
                     },
                 },
             ],
@@ -165,7 +154,7 @@ describe('Backward-compatible fallback without context', () => {
     });
 });
 
-describe('enableWhenExpression on an item nested inside a repeating group', () => {
+describe('enableWhen (no expression) on an item nested inside a repeating group', () => {
     const fceQuestionnaire: FCEQuestionnaire = {
         resourceType: 'Questionnaire',
         status: 'active',
@@ -186,10 +175,9 @@ describe('enableWhenExpression on an item nested inside a repeating group', () =
             },
         ],
     };
-    const qrfDataContext = buildQrfDataContext(fceQuestionnaire);
 
     test('row-specific enabling: only the enabled row enforces required', async () => {
-        const schema = questionnaireItemsToValidationSchema(fceQuestionnaire.item!, undefined, qrfDataContext);
+        const schema = questionnaireItemsToValidationSchema(fceQuestionnaire.item!);
 
         // Row 0 enabled and missing dose -> invalid
         expect(
@@ -236,10 +224,9 @@ describe('enableWhenExpression validation error lands on the nested field path',
             },
         ],
     };
-    const qrfDataContext: QuestionnaireResponseFormData['context'] = {
-        ...buildQrfDataContext(fceQuestionnaire),
-        launchContextParameters: [{ name: 'Author', resource: { resourceType: 'Practitioner', id: 'practitioner-1' } }],
-    };
+    const qrfDataContext: QuestionnaireResponseFormData['context'] = buildQrfDataContext(fceQuestionnaire, [
+        { name: 'Author', resource: { resourceType: 'Practitioner', id: 'practitioner-1' } },
+    ]);
 
     test('error path matches the answer input the control is registered under, not just the top-level linkId', async () => {
         const schema = questionnaireItemsToValidationSchema(fceQuestionnaire.item!, undefined, qrfDataContext);
@@ -248,9 +235,8 @@ describe('enableWhenExpression validation error lands on the nested field path',
         };
 
         await expect(schema.validate(values, { abortEarly: false })).rejects.toMatchObject({
-            // This is the path controls.tsx registers the text input under (`[...parentPath, linkId, 0,
-            // 'value', 'string'].join('.')`). If validation only reports the flat `staff-only-reason`
-            // path, submission is blocked but the input never gets highlighted as invalid.
+            // Matches the path controls.tsx registers the text input under - the flat `staff-only-reason`
+            // path would block submission without ever highlighting the field.
             inner: [expect.objectContaining({ path: 'staff-only-reason[0].value.string' })],
         });
     });

@@ -70,8 +70,6 @@ export function questionnaireItemsToValidationSchema(
     customYupTests?: CustomYupTestsMap,
     qrfDataContext?: QuestionnaireResponseFormData['context'],
     evaluateFhirpath?: EvaluateFhirpath,
-    parentPath: string[] = [],
-    warnedEnableWhenExpressionLinkIds: Set<string> = new Set(),
 ) {
     const validationSchema: Record<string, yup.AnySchema> = {};
     if (questionnaireItems.length === 0) {
@@ -155,7 +153,6 @@ export function questionnaireItemsToValidationSchema(
             schema = applyCustomYupTestsToItem(item, schema, customYupTests);
             schema = createSchemaArrayOfValues(yup.object({ boolean: schema }));
         } else if (item.type === 'group' && item.item) {
-            const childParentPath = [...parentPath, item.linkId, 'items'];
             schema = yup
                 .object({
                     items: item.repeats
@@ -167,8 +164,6 @@ export function questionnaireItemsToValidationSchema(
                                       customYupTests,
                                       qrfDataContext,
                                       evaluateFhirpath,
-                                      childParentPath,
-                                      warnedEnableWhenExpressionLinkIds,
                                   ),
                               )
                         : questionnaireItemsToValidationSchema(
@@ -176,8 +171,6 @@ export function questionnaireItemsToValidationSchema(
                               customYupTests,
                               qrfDataContext,
                               evaluateFhirpath,
-                              childParentPath,
-                              warnedEnableWhenExpressionLinkIds,
                           ),
                 })
                 .required();
@@ -189,11 +182,11 @@ export function questionnaireItemsToValidationSchema(
 
         schema = item.required ? schema.required() : schema;
 
-        if (qrfDataContext && (item.enableWhen || item.enableWhenExpression)) {
+        if (item.enableWhenExpression) {
             validationSchema[item.linkId] = yup
                 .mixed()
                 .test(
-                    getIsQuestionEnabledTest({ item, itemSchema: schema, parentPath, qrfDataContext, evaluateFhirpath }),
+                    getIsQuestionEnabledTest({ item, itemSchema: schema, qrfDataContext, evaluateFhirpath }),
                 );
         } else if (item.enableWhen) {
             validationSchema[item.linkId] = getQuestionItemEnableWhenSchema({
@@ -201,14 +194,6 @@ export function questionnaireItemsToValidationSchema(
                 enableBehavior: item.enableBehavior,
                 schema,
             });
-        } else if (item.enableWhenExpression) {
-            if (!warnedEnableWhenExpressionLinkIds.has(item.linkId)) {
-                warnedEnableWhenExpressionLinkIds.add(item.linkId);
-                console.warn(
-                    `Item "${item.linkId}" defines enableWhenExpression, but questionnaireToValidationSchema/questionnaireItemsToValidationSchema was called without qrfDataContext. The item will be treated as always enabled for validation purposes.`,
-                );
-            }
-            validationSchema[item.linkId] = schema;
         } else {
             validationSchema[item.linkId] = schema;
         }
@@ -301,57 +286,56 @@ function isEnableWhenItemSucceed(props: IsEnableWhenItemSucceedProps): boolean {
 interface GetIsQuestionEnabledTestProps {
     item: FCEQuestionnaireItem;
     itemSchema: yup.AnySchema;
-    parentPath: string[];
-    qrfDataContext: QuestionnaireResponseFormData['context'];
+    qrfDataContext?: QuestionnaireResponseFormData['context'];
     evaluateFhirpath?: EvaluateFhirpath;
 }
 
-// yup builds a dot/bracket path for the field under test, e.g. `group.items[2].leaf`.
-// That's exactly the shape sdc-qrf's getEnabledQuestions expects as parentPath (minus the
-// item's own linkId), including the row index for items nested inside repeating groups -
-// which the statically-threaded `parentPath` cannot know at schema-build time.
-function resolveRuntimeParentPath(yupPath: string | undefined, fallbackParentPath: string[]): string[] {
-    if (!yupPath) {
-        return fallbackParentPath;
-    }
-    const segments = yupPath.match(/[^.[\]]+/g);
+// testContext.path (e.g. `group.items[2].leaf`) already includes repeating-group row indices;
+// strip the item's own linkId to get the parentPath getEnabledQuestions expects.
+function resolveRuntimeParentPath(yupPath: string | undefined): string[] {
+    const segments = yupPath?.match(/[^.[\]]+/g);
     if (!segments || segments.length === 0) {
-        return fallbackParentPath;
+        return [];
     }
     return segments.slice(0, -1);
 }
 
 function getIsQuestionEnabledTest(props: GetIsQuestionEnabledTestProps): yup.TestConfig<any> {
-    const { item, itemSchema, parentPath, qrfDataContext, evaluateFhirpath } = props;
+    const { item, itemSchema, qrfDataContext, evaluateFhirpath } = props;
 
     return {
         name: 'sdc-enable-when',
         test(value, testContext) {
-            const rootValues = (testContext.from?.[testContext.from.length - 1]?.value ?? {}) as FormItems;
-            const runtimeParentPath = resolveRuntimeParentPath(testContext.path, parentPath);
-            const itemContext = calcInitialContext(qrfDataContext, rootValues);
+            if (!qrfDataContext) {
+                // Can't evaluate the expression without context - fall through to validating
+                // itemSchema as if the item were enabled, rather than skip validation entirely.
+                console.warn(
+                    `Item "${item.linkId}" defines enableWhenExpression, but questionnaireToValidationSchema/questionnaireItemsToValidationSchema was called without qrfDataContext. The item will be treated as always enabled for validation purposes.`,
+                );
+            } else {
+                const rootValues = (testContext.from?.[testContext.from.length - 1]?.value ?? {}) as FormItems;
+                const runtimeParentPath = resolveRuntimeParentPath(testContext.path);
+                const itemContext = calcInitialContext(qrfDataContext, rootValues);
 
-            // Propagates as-is (not caught) when enableWhenExpression evaluates to a non-boolean -
-            // sdc-qrf throws a plain Error here, which yup surfaces as a schema evaluation failure
-            // rather than a validation result.
-            const enabledItems = getEnabledQuestions(
-                [item],
-                runtimeParentPath,
-                rootValues,
-                itemContext,
-                evaluateFhirpath,
-            );
+                // A non-boolean expression result makes sdc-qrf throw here; left uncaught, yup
+                // surfaces it as a schema evaluation failure rather than a validation result.
+                const enabledItems = getEnabledQuestions(
+                    [item],
+                    runtimeParentPath,
+                    rootValues,
+                    itemContext,
+                    evaluateFhirpath,
+                );
 
-            if (enabledItems.length === 0) {
-                return true;
+                if (enabledItems.length === 0) {
+                    return true;
+                }
             }
 
             try {
-                // Passing `path` seeds itemSchema's own error paths/messages with testContext.path as the
-                // base, so a nested failure (e.g. a required string with no answer) lands at
-                // `linkId[0].value.string` - matching the nested field name the actual input control is
-                // registered under via useController - instead of collapsing to just `linkId`, which would
-                // block submission without ever highlighting the field.
+                // `path` seeds nested errors with testContext.path, so they land at e.g.
+                // `linkId[0].value.string` - the same path the input control is registered
+                // under - instead of collapsing to `linkId`, which never highlights the field.
                 itemSchema.validateSync(value, {
                     abortEarly: false,
                     context: testContext.options.context,
