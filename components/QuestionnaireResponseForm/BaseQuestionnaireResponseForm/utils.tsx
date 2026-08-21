@@ -3,6 +3,7 @@ import { t } from '@lingui/macro';
 
 import {
     AnswerValue,
+    EvaluateFhirpath,
     FCEQuestionnaire,
     FCEQuestionnaireItem,
     getChecker,
@@ -54,14 +55,21 @@ export function questionnaireToValidationSchema(
     questionnaire: FCEQuestionnaire,
     customYupTests?: CustomYupTestsMap,
     qrfDataContext?: QuestionnaireResponseFormData['context'],
+    evaluateFhirpath?: EvaluateFhirpath,
 ) {
-    return questionnaireItemsToValidationSchema(questionnaire.item ?? [], customYupTests, qrfDataContext);
+    return questionnaireItemsToValidationSchema(
+        questionnaire.item ?? [],
+        customYupTests,
+        qrfDataContext,
+        evaluateFhirpath,
+    );
 }
 
 export function questionnaireItemsToValidationSchema(
     questionnaireItems: FCEQuestionnaireItem[],
     customYupTests?: CustomYupTestsMap,
     qrfDataContext?: QuestionnaireResponseFormData['context'],
+    evaluateFhirpath?: EvaluateFhirpath,
     parentPath: string[] = [],
     warnedEnableWhenExpressionLinkIds: Set<string> = new Set(),
 ) {
@@ -158,6 +166,7 @@ export function questionnaireItemsToValidationSchema(
                                       item.item,
                                       customYupTests,
                                       qrfDataContext,
+                                      evaluateFhirpath,
                                       childParentPath,
                                       warnedEnableWhenExpressionLinkIds,
                                   ),
@@ -166,6 +175,7 @@ export function questionnaireItemsToValidationSchema(
                               item.item,
                               customYupTests,
                               qrfDataContext,
+                              evaluateFhirpath,
                               childParentPath,
                               warnedEnableWhenExpressionLinkIds,
                           ),
@@ -182,7 +192,9 @@ export function questionnaireItemsToValidationSchema(
         if (qrfDataContext && (item.enableWhen || item.enableWhenExpression)) {
             validationSchema[item.linkId] = yup
                 .mixed()
-                .test(getIsQuestionEnabledTest({ item, itemSchema: schema, parentPath, qrfDataContext }));
+                .test(
+                    getIsQuestionEnabledTest({ item, itemSchema: schema, parentPath, qrfDataContext, evaluateFhirpath }),
+                );
         } else if (item.enableWhen) {
             validationSchema[item.linkId] = getQuestionItemEnableWhenSchema({
                 enableWhenItems: item.enableWhen,
@@ -291,6 +303,7 @@ interface GetIsQuestionEnabledTestProps {
     itemSchema: yup.AnySchema;
     parentPath: string[];
     qrfDataContext: QuestionnaireResponseFormData['context'];
+    evaluateFhirpath?: EvaluateFhirpath;
 }
 
 // yup builds a dot/bracket path for the field under test, e.g. `group.items[2].leaf`.
@@ -309,7 +322,7 @@ function resolveRuntimeParentPath(yupPath: string | undefined, fallbackParentPat
 }
 
 function getIsQuestionEnabledTest(props: GetIsQuestionEnabledTestProps): yup.TestConfig<any> {
-    const { item, itemSchema, parentPath, qrfDataContext } = props;
+    const { item, itemSchema, parentPath, qrfDataContext, evaluateFhirpath } = props;
 
     return {
         name: 'sdc-enable-when',
@@ -321,20 +334,32 @@ function getIsQuestionEnabledTest(props: GetIsQuestionEnabledTestProps): yup.Tes
             // Propagates as-is (not caught) when enableWhenExpression evaluates to a non-boolean -
             // sdc-qrf throws a plain Error here, which yup surfaces as a schema evaluation failure
             // rather than a validation result.
-            const enabledItems = getEnabledQuestions([item], runtimeParentPath, rootValues, itemContext);
+            const enabledItems = getEnabledQuestions(
+                [item],
+                runtimeParentPath,
+                rootValues,
+                itemContext,
+                evaluateFhirpath,
+            );
 
             if (enabledItems.length === 0) {
                 return true;
             }
 
             try {
+                // Passing `path` seeds itemSchema's own error paths/messages with testContext.path as the
+                // base, so a nested failure (e.g. a required string with no answer) lands at
+                // `linkId[0].value.string` - matching the nested field name the actual input control is
+                // registered under via useController - instead of collapsing to just `linkId`, which would
+                // block submission without ever highlighting the field.
                 itemSchema.validateSync(value, {
                     abortEarly: false,
                     context: testContext.options.context,
-                });
+                    path: testContext.path,
+                } as yup.ValidateOptions);
             } catch (err) {
                 if (err instanceof yup.ValidationError) {
-                    return testContext.createError({ message: err.errors.join(', ') });
+                    return err;
                 }
                 throw err;
             }

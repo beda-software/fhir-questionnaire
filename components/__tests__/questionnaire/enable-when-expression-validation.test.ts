@@ -219,3 +219,39 @@ describe('enableWhenExpression on an item nested inside a repeating group', () =
         ).toBe(true);
     });
 });
+
+describe('enableWhenExpression validation error lands on the nested field path', () => {
+    const fceQuestionnaire: FCEQuestionnaire = {
+        resourceType: 'Questionnaire',
+        status: 'active',
+        item: [
+            {
+                linkId: 'staff-only-reason',
+                type: 'string',
+                required: true,
+                enableWhenExpression: {
+                    language: 'text/fhirpath',
+                    expression: "%Author.resourceType != 'Patient'",
+                },
+            },
+        ],
+    };
+    const qrfDataContext: QuestionnaireResponseFormData['context'] = {
+        ...buildQrfDataContext(fceQuestionnaire),
+        launchContextParameters: [{ name: 'Author', resource: { resourceType: 'Practitioner', id: 'practitioner-1' } }],
+    };
+
+    test('error path matches the answer input the control is registered under, not just the top-level linkId', async () => {
+        const schema = questionnaireItemsToValidationSchema(fceQuestionnaire.item!, undefined, qrfDataContext);
+        const values: FormItems = {
+            'staff-only-reason': [{ value: { string: undefined } }],
+        };
+
+        await expect(schema.validate(values, { abortEarly: false })).rejects.toMatchObject({
+            // This is the path controls.tsx registers the text input under (`[...parentPath, linkId, 0,
+            // 'value', 'string'].join('.')`). If validation only reports the flat `staff-only-reason`
+            // path, submission is blocked but the input never gets highlighted as invalid.
+            inner: [expect.objectContaining({ path: 'staff-only-reason[0].value.string' })],
+        });
+    });
+});
