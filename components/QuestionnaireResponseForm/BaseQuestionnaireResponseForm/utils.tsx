@@ -319,6 +319,8 @@ function resolveRowScopedContext(
         ...qrfDataContext.questionnaireResponse,
         ...mapFormToResponse(rootValues, qrfDataContext.questionnaire),
     };
+    // runtimeParentPath always keeps the row index, so getBranchItems resolves a single row
+    // rather than its "all rows of a repeat" case - qrItems is always a 1-element array here.
     const { qrItems } = getBranchItems(runtimeParentPath, qrfDataContext.questionnaire, questionnaireResponse);
     return qrItems[0];
 }
