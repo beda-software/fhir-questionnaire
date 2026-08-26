@@ -242,7 +242,7 @@ describe('enableWhenExpression on an item nested inside a repeating group', () =
         // Row 1's field-1 is unanswered, so its dependent field stays disabled despite being empty.
         expect(
             await schema.isValid({
-                Group: {
+                group: {
                     items: [
                         {
                             'field-1': [{ value: { string: 'value' } }],
@@ -260,7 +260,7 @@ describe('enableWhenExpression on an item nested inside a repeating group', () =
         // Same shape, but row 0's dependent field is filled in -> valid.
         expect(
             await schema.isValid({
-                Group: {
+                group: {
                     items: [
                         {
                             'field-1': [{ value: { string: 'value' } }],
