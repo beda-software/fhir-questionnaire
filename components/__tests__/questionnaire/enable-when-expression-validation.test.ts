@@ -215,7 +215,7 @@ describe('enableWhenExpression on an item nested inside a repeating group', () =
         status: 'active',
         item: [
             {
-                linkId: 'Group',
+                linkId: 'group',
                 type: 'group',
                 repeats: true,
                 item: [
