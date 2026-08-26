@@ -208,6 +208,75 @@ describe('enableWhen (no expression) on an item nested inside a repeating group'
     });
 });
 
+describe('enableWhenExpression on an item nested inside a repeating group', () => {
+    // %context is scoped to the enclosing row, so a sibling lookup must not see other rows.
+    const fceQuestionnaire: FCEQuestionnaire = {
+        resourceType: 'Questionnaire',
+        status: 'active',
+        item: [
+            {
+                linkId: 'Group',
+                type: 'group',
+                repeats: true,
+                item: [
+                    { linkId: 'field-1', type: 'string' },
+                    {
+                        linkId: 'enablewhenexpression-field',
+                        type: 'string',
+                        required: true,
+                        enableWhenExpression: {
+                            language: 'text/fhirpath',
+                            expression: "%context.item.where(linkId='field-1').answer.exists()",
+                        },
+                    },
+                ],
+            },
+        ],
+    };
+    const qrfDataContext = buildQrfDataContext(fceQuestionnaire);
+
+    test('row-specific enabling: only rows where field-1 is answered enforce required', async () => {
+        const schema = questionnaireItemsToValidationSchema(fceQuestionnaire.item!, undefined, qrfDataContext);
+
+        // Row 0's field-1 is answered and its dependent field is empty -> invalid.
+        // Row 1's field-1 is unanswered, so its dependent field stays disabled despite being empty.
+        expect(
+            await schema.isValid({
+                Group: {
+                    items: [
+                        {
+                            'field-1': [{ value: { string: 'value' } }],
+                            'enablewhenexpression-field': undefined,
+                        },
+                        {
+                            'field-1': undefined,
+                            'enablewhenexpression-field': undefined,
+                        },
+                    ],
+                },
+            }),
+        ).toBe(false);
+
+        // Same shape, but row 0's dependent field is filled in -> valid.
+        expect(
+            await schema.isValid({
+                Group: {
+                    items: [
+                        {
+                            'field-1': [{ value: { string: 'value' } }],
+                            'enablewhenexpression-field': [{ value: { string: 'filled' } }],
+                        },
+                        {
+                            'field-1': undefined,
+                            'enablewhenexpression-field': undefined,
+                        },
+                    ],
+                },
+            }),
+        ).toBe(true);
+    });
+});
+
 describe('enableWhenExpression validation error lands on the nested field path', () => {
     const fceQuestionnaire: FCEQuestionnaire = {
         resourceType: 'Questionnaire',

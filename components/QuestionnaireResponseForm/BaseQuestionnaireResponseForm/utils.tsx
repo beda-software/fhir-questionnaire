@@ -13,10 +13,13 @@ import {
     toAnswerValue,
     getEnabledQuestions,
     calcInitialContext,
+    mapFormToResponse,
     QuestionnaireResponseFormData,
 } from 'sdc-qrf';
+// Not re-exported from sdc-qrf's public index; deep import may break on a future sdc-qrf release.
+import { getBranchItems } from 'sdc-qrf/dist/utils';
 import { ControllerFieldState, ControllerRenderProps, FieldValues } from 'react-hook-form';
-import { QuestionnaireItemEnableWhen } from 'fhir/r4b';
+import { QuestionnaireItemEnableWhen, QuestionnaireResponseItem } from 'fhir/r4b';
 
 export interface CustomYupTestsMap {
     [itemControlCode: string]: yup.TestConfig<any>[];
@@ -300,6 +303,26 @@ function resolveRuntimeParentPath(yupPath: string | undefined): string[] {
     return segments.slice(0, -1);
 }
 
+// On render, %context is rebound to the enclosing repeat instance's own QuestionnaireResponse
+// item (sdc-qrf's useVariablesResolver); getEnabledQuestions doesn't do this, so we replicate it
+// here for validation.
+function resolveRowScopedContext(
+    qrfDataContext: QuestionnaireResponseFormData['context'],
+    rootValues: FormItems,
+    runtimeParentPath: string[],
+): QuestionnaireResponseItem | undefined {
+    if (runtimeParentPath.length === 0) {
+        return undefined;
+    }
+
+    const questionnaireResponse = {
+        ...qrfDataContext.questionnaireResponse,
+        ...mapFormToResponse(rootValues, qrfDataContext.questionnaire),
+    };
+    const { qrItems } = getBranchItems(runtimeParentPath, qrfDataContext.questionnaire, questionnaireResponse);
+    return qrItems[0];
+}
+
 function getIsQuestionEnabledTest(props: GetIsQuestionEnabledTestProps): yup.TestConfig<any> {
     const { item, itemSchema, qrfDataContext, evaluateFhirpath } = props;
 
@@ -315,7 +338,11 @@ function getIsQuestionEnabledTest(props: GetIsQuestionEnabledTestProps): yup.Tes
             } else {
                 const rootValues = (testContext.from?.[testContext.from.length - 1]?.value ?? {}) as FormItems;
                 const runtimeParentPath = resolveRuntimeParentPath(testContext.path);
-                const itemContext = calcInitialContext(qrfDataContext, rootValues);
+                const rowScopedContext = resolveRowScopedContext(qrfDataContext, rootValues, runtimeParentPath);
+                const itemContext = {
+                    ...calcInitialContext(qrfDataContext, rootValues),
+                    ...(rowScopedContext !== undefined ? { context: rowScopedContext } : {}),
+                };
 
                 // A non-boolean expression result makes sdc-qrf throw here; left uncaught, yup
                 // surfaces it as a schema evaluation failure rather than a validation result.
