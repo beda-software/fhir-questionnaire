@@ -189,9 +189,15 @@ export function BaseQuestionnaireResponseForm(props: BaseQuestionnaireResponseFo
     );
 
     const groupItemComponent = useMemo(
-        () => (itemProps: GroupItemProps) => (
-            <GroupComponent itemProps={itemProps} Control={props.groupItemComponent} GroupWrapper={GroupWrapper} />
-        ),
+        () => (itemProps: GroupItemProps) => {
+            if (itemProps.questionItem.hidden) {
+                return <></>;
+            }
+
+            return (
+                <GroupComponent itemProps={itemProps} Control={props.groupItemComponent} GroupWrapper={GroupWrapper} />
+            );
+        },
         [GroupWrapper, props.groupItemComponent],
     );
 
