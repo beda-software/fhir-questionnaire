@@ -65,6 +65,9 @@
     "scripts": {
         "test": "vp test run",
         "test:watch": "vp test",
+        "lint": "vp lint",
+        "fmt": "vp fmt",
+        "check": "vp check",
         "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
         "build": "node -e \"require('fs').rmSync('dist',{ recursive: true, force: true })\" && tsc -p tsconfig.json && babel dist --extensions \".js\" --out-dir dist --plugins babel-plugin-macros",
         "extract": "lingui extract",
