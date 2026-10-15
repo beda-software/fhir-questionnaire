@@ -4,7 +4,7 @@ import {
     CustomYupTestsMap,
     questionnaireItemsToValidationSchema,
 } from '../../QuestionnaireResponseForm/BaseQuestionnaireResponseForm/utils';
-import { describe, test, expect } from 'vitest';
+import { describe, test, expect } from 'vite-plus/test';
 
 type QuestionnaireData = {
     questionnaire: FCEQuestionnaire;

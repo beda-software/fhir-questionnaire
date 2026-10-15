@@ -1,5 +1,5 @@
 import { Extension } from 'fhir/r4b';
-import { describe, expect, test } from 'vitest';
+import { describe, expect, test } from 'vite-plus/test';
 
 import { ASSEMBLED_FROM_EXTENSION_URL, getExtensionCanonical } from '../QuestionnaireResponseForm/utils';
 

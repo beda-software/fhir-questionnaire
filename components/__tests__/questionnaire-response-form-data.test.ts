@@ -1,7 +1,7 @@
 import { success } from '@beda.software/remote-data';
 import { Parameters as FHIRParameters, Questionnaire, QuestionnaireResponse } from 'fhir/r4b';
 
-import { describe, expect, test, vi } from 'vitest';
+import { describe, expect, test, vi } from 'vite-plus/test';
 import {
     getSdcServices,
     QuestionnaireResponseFormProps,
