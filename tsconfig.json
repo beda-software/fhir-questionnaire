@@ -3,7 +3,7 @@
         "target": "es6",
         "lib": ["DOM", "ES5", "DOM.Iterable", "ES2019"],
         "module": "esnext",
-        "moduleResolution": "node",
+        "moduleResolution": "bundler",
         "importHelpers": true,
         "useDefineForClassFields": true,
         "isolatedModules": true,
@@ -19,8 +19,6 @@
         "skipLibCheck": true,
 
         "outDir": "dist",
-
-        "baseUrl": ".",
         "noUncheckedIndexedAccess": true,
         "noUnusedLocals": true,
         "resolveJsonModule": true,

@@ -3,7 +3,7 @@ import { ParametersParameter } from 'fhir/r4b';
 import React, { ReactNode } from 'react';
 
 import { renderHook } from '@testing-library/react';
-import { describe, expect, test } from 'vitest';
+import { describe, expect, test } from 'vite-plus/test';
 
 import { getFirstParameter, getParameters } from '../../utils';
 import { ClinicalContext, useClinicalContext } from '../clinical-context';

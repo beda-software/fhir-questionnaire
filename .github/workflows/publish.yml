@@ -17,12 +17,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Yarn 4 is pinned via packageManager; setup-node cache needs it before running
+      - run: corepack enable
+
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
-          registry-url: 'https://registry.npmjs.org'
-          cache: 'yarn'
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+          cache: "yarn"
 
-      - run: yarn install --frozen-lockfile
+      - run: yarn install --immutable
 
       - run: npm publish --access public --tag latest --provenance

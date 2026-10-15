@@ -1,6 +1,6 @@
 import { ParametersParameter } from 'fhir/r4b';
 
-import { describe, expect, test } from 'vitest';
+import { describe, expect, test } from 'vite-plus/test';
 
 import { mergeLaunchContextParameters } from '../../utils';
 

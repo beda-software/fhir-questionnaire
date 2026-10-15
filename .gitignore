@@ -4,3 +4,5 @@ dist
 .gitnexus
 .claude
 .DS_Store
+.vitest/
+.yarn/

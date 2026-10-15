@@ -23,7 +23,8 @@ export { useFieldController } from './BaseQuestionnaireResponseForm/hooks';
 export * from './questionnaire-response-form-data';
 
 export interface Props
-    extends QuestionnaireResponseFormProps,
+    extends
+        QuestionnaireResponseFormProps,
         Pick<
             BaseQuestionnaireResponseFormProps,
             | 'widgetsByQuestionType'
