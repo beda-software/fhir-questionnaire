@@ -108,7 +108,7 @@
         "react-dom": "18.2.0",
         "typescript": "^5.1.6",
         "typescript-eslint": "^8.28.0",
-        "vitest": "^3.2.4"
+        "vitest": "^4"
     },
     "repository": {
         "type": "git",
