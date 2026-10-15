@@ -102,10 +102,10 @@ Storage order in `parameters` is parent first, child last.
 
 `useClinicalContext()` exposes only `parameters`. Use the exported utility functions for lookups:
 
-| Function | Returns | Behavior |
-| -------- | ------- | -------- |
-| `getParameters(params, name)` | `ParametersParameter[]` | All matches, **child-first** (most recent / deepest first) |
-| `getFirstParameter(params, name)` | `ParametersParameter \| undefined` | The deepest (last-appended) match for that name |
+| Function                          | Returns                            | Behavior                                                   |
+| --------------------------------- | ---------------------------------- | ---------------------------------------------------------- |
+| `getParameters(params, name)`     | `ParametersParameter[]`            | All matches, **child-first** (most recent / deepest first) |
+| `getFirstParameter(params, name)` | `ParametersParameter \| undefined` | The deepest (last-appended) match for that name            |
 
 Example when both outer and inner providers supply a `patient` parameter:
 
@@ -125,6 +125,14 @@ getFirstParameter(allParams, 'patient');
 When no `ClinicalContext` provider is mounted, `useClinicalContext()` returns `{ parameters: [] }` and forms behave as before with only explicit `launchContextParameters`.
 
 # Development
+
+Prerequisites: Node `^22.18.0 || ^24.11.0 || >=26` and Corepack (pins Yarn 4 via `packageManager`; on Node 25+ install it first with `npm install -g corepack`).
+
+```sh
+corepack enable
+rm -rf node_modules  # once, when switching from Yarn 1
+yarn install
+```
 
 Make sure global dependencies (like `react`) are defined as peer-dependencies.
 
