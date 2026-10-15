@@ -146,6 +146,7 @@ export default defineConfig({
         printWidth: 120,
         jsxSingleQuote: false,
         sortPackageJson: false,
-        ignorePatterns: [],
+        ignorePatterns: ['components/locale/**/messages.ts'],
+        overrides: [{ files: ['*.yml', '*.yaml'], options: { tabWidth: 2, singleQuote: false } }],
     },
 });
