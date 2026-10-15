@@ -279,30 +279,23 @@ export async function loadQuestionnaireResponseFormData(
     const fhirQuestionnaire = translateQuestionnaire(questionnaireRemoteData.data, props.language ?? 'en');
 
     const questionnaireId =
-        fhirQuestionnaire.id ??
-        getExtensionCanonical(fhirQuestionnaire.extension, ASSEMBLED_FROM_EXTENSION_URL);
+        fhirQuestionnaire.id ?? getExtensionCanonical(fhirQuestionnaire.extension, ASSEMBLED_FROM_EXTENSION_URL);
 
     const params: Parameters = {
         resourceType: 'Parameters',
-        parameter: [
-            { name: 'questionnaire', resource: fhirQuestionnaire },
-            ...(launchContextParameters || []),
-        ],
+        parameter: [{ name: 'questionnaire', resource: fhirQuestionnaire }, ...(launchContextParameters || [])],
     };
 
     let populateRemoteData: RemoteDataResult<QuestionnaireResponse>;
     if (initialQuestionnaireResponse?.id) {
         populateRemoteData = success(initialQuestionnaireResponse as QuestionnaireResponse);
     } else {
-        populateRemoteData = mapSuccess(
-            await sdcServices.populate(params),
-            (draft): QuestionnaireResponse => ({
-                ...initialQuestionnaireResponse,
-                ...draft,
-                id: draft.id ?? uuid4(),
-                questionnaire: questionnaireId,
-            }),
-        );
+        populateRemoteData = mapSuccess(await sdcServices.populate(params), (draft): QuestionnaireResponse => ({
+            ...initialQuestionnaireResponse,
+            ...draft,
+            id: draft.id ?? uuid4(),
+            questionnaire: questionnaireId,
+        }));
         if (isSuccess(populateRemoteData) && autosave) {
             populateRemoteData.data.status = 'in-progress';
             populateRemoteData = await sdcServices.saveInProgressQuestionnaireResponse(populateRemoteData.data);
