@@ -14,9 +14,6 @@ export function useFieldController<T = unknown>(fieldName: Array<string | number
     // The array default only applies to fields bound to the whole item (`[..., linkId]`).
     // Fields bound to a single answer value (e.g. `[..., linkId, 0, 'value', 'string']`) must not get it,
     // otherwise it ends up inside the answer value (e.g. `{ value: { string: [] } }`) and breaks validation.
-    // `isGroup` only picks which default to use, not whether to apply it: the same repeating non-group item
-    // can be rendered by a control bound to `[linkId]` (e.g. Choice) or to the answer value (e.g. QuestionString),
-    // so only the field path tells the two cases apart.
     const bindsToItem = fieldName[fieldName.length - 1] === questionItem.linkId;
 
     // @ts-expect-error because T might be array
