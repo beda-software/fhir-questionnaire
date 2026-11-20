@@ -11,6 +11,10 @@ export function useFieldController<T = unknown>(fieldName: Array<string | number
 
     const isGroup = questionItem.type === 'group';
     const defaultValue = isGroup ? { items: [] } : [];
+    // The array default only applies to fields bound to the whole item (`[..., linkId]`).
+    // Fields bound to a single answer value (e.g. `[..., linkId, 0, 'value', 'string']`) must not get it,
+    // otherwise it ends up inside the answer value (e.g. `{ value: { string: [] } }`) and breaks validation.
+    const bindsToItem = fieldName[fieldName.length - 1] === questionItem.linkId;
 
     // @ts-expect-error because T might be array
     const { field, fieldState } = useController<T>({
@@ -21,7 +25,7 @@ export function useFieldController<T = unknown>(fieldName: Array<string | number
         // such writes emit a single event named with the ancestor path, which an
         // exact-match subscription on this leaf path would miss.
         exact: false,
-        ...(repeats ? { defaultValue } : {}),
+        ...(repeats && bindsToItem ? { defaultValue } : {}),
     });
 
     const onMultiChange = useCallback(
