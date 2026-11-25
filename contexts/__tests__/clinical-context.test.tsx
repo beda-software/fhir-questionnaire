@@ -100,4 +100,19 @@ describe('ClinicalContext', () => {
 
         expect(result.current.parameters).toEqual([patient('outer'), encounter('1'), patient('inner')]);
     });
+
+    test('appends nested context in storage order when append=true multiple times', () => {
+        const { result } = renderHook(() => useClinicalContext(), {
+            wrapper: ({ children }) => (
+                <ClinicalContext append context={[patient('outer'), encounter('1')]}>
+                    <ClinicalContext append context={[encounter('2')]}>
+                        <ClinicalContext append context={[encounter('3')]}>
+                            {children}
+                        </ClinicalContext>
+                    </ClinicalContext>
+                </ClinicalContext>
+            ),
+        });
+        expect(result.current.parameters).toEqual([patient('outer'), encounter('1'), encounter('2'), encounter('3')]);
+    });
 });
